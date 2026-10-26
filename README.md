@@ -6,8 +6,8 @@ usuarios y contratos para trabajar en equipo. Todavía no hay login, CRUD de neg
 ni pantallas. El único HTTP implementado es `/health` y `/health/db`.
 
 Repositorio de trabajo: <https://github.com/A625A/Habits>. La base de esta entrega
-se comparte en las cuatro ramas del equipo; `main` conserva el estado inicial.
-La autorización de publicación comprende GitHub, sin merge ni despliegue.
+está integrada en `main` y sincronizada con las cuatro ramas del equipo.
+Andrew autorizó la publicación y esta integración; no se ha realizado despliegue.
 
 ## Requisitos
 
@@ -25,7 +25,7 @@ git clone --branch feat/andrew-core-deploy https://github.com/A625A/Habits.git
 cd Habits
 ```
 
-Clonar sin seleccionar rama abre `main`, que todavía no contiene esta base.
+Clonar sin seleccionar rama abre `main`, que también contiene esta base.
 
 ```bash
 python3 -m venv .venv

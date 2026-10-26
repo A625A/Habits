@@ -45,5 +45,7 @@ reportes visibles, README final, Railway y demo. No agregar CRUD de estos módul
 No crear usuarios demo con contraseñas predeterminadas. Los nombres de sucursal demo
 son ficticios y no pretenden representar nombres aprobados por el equipo.
 
-No hacer push, merge ni despliegues. Los commits locales están autorizados mediante
-el skill implement. No atribuir commits de esta base a los demás integrantes.
+El pedido inicial prohibía push, merge y despliegues sin autorización. Andrew
+autorizó después publicar esta base e integrarla en `main`, sincronizando las
+cuatro ramas del equipo. Los despliegues siguen pendientes de autorización.
+No atribuir commits de esta base a los demás integrantes.

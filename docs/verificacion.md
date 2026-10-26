@@ -34,6 +34,7 @@ Railway porque no forman parte de esta implementación. Tampoco se valida aún
 el DER general del equipo. Esta evidencia no equivale a una aplicación completa.
 El repositorio de destino es `A625A/Habits`. La verificación inicial se realizó
 antes de publicar. Posteriormente Andrew autorizó publicar los commits y las
-cuatro ramas en GitHub; `main` permanece intacta, sin merge ni despliegue.
+cuatro ramas en GitHub, y luego integrar la base en `main`, dejando las cinco
+ramas en el mismo commit mediante avances fast-forward. No se realizó despliegue.
 
 Revisión independiente en dos ejes: [revision-fase-1.md](revision-fase-1.md).
