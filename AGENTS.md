@@ -1,6 +1,8 @@
 # Habits Cafetería
 
 Leer docs/fase-1-andrew.md y docs/contratos.md antes de cambiar código.
+Para autenticación/auditoría del 26, leer también docs/andrew-26-octubre.md y
+docs/integracion-26-octubre.md; actualizan los límites históricos de Fase 1.
 Respetar propietarios y alcance. No hacer push, merge ni despliegues sin autorización.
 Usar SQL parametrizado, transacciones explícitas y nunca versionar secretos.
 

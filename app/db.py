@@ -30,6 +30,7 @@ def init_app(app: Flask) -> None:
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
     app.cli.add_command(seed_db_command)
+    app.cli.add_command(upgrade_db_command)
 
 
 @click.command("db-init")
@@ -60,3 +61,20 @@ def seed_db_command() -> None:
             "No se pudo cargar el seed. Verificá conexión y ejecutá db-init primero."
         ) from None
     click.echo("Sucursales demo disponibles.")
+
+
+@click.command("db-upgrade")
+@with_appcontext
+def upgrade_db_command() -> None:
+    """Aplicar ampliaciones de Andrew sobre el core existente sin borrar datos."""
+    scripts = Path(current_app.root_path).parent / "sql"
+    try:
+        with get_db().transaction():
+            get_db().execute((scripts / "01_auth.sql").read_text(encoding="utf-8"))
+            get_db().execute((scripts / "06_auditoria.sql").read_text(encoding="utf-8"))
+    except psycopg.Error as error:
+        raise click.ClickException(
+            f"No se pudo actualizar el esquema (SQLSTATE {error.sqlstate}). "
+            "Verificá conexión y ejecutá db-init primero en una base nueva."
+        ) from None
+    click.echo("Ampliaciones de Andrew aplicadas.")

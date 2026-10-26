@@ -1,5 +1,9 @@
 # Contratos de integración — Fase 1
 
+Actualización del 26 de octubre: ver [integracion-26-octubre.md](integracion-26-octubre.md).
+Ese documento reemplaza las indicaciones históricas de este archivo sobre auth,
+sesiones, auditoría y db-upgrade; el esquema core y las responsabilidades se conservan.
+
 ## Propiedad y esquema existente
 
 Andrew mantiene `sucursales` y `usuarios`. IDs `BIGINT GENERATED ALWAYS AS IDENTITY`:

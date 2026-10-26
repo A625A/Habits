@@ -1,13 +1,13 @@
 # Habits
 Proyecto 2 base de Datos 1, Cafeteria y postreria "Habits"
 
-Base inicial de **Andrew, Fase 1**: Flask modular, PostgreSQL real, sucursales,
-usuarios y contratos para trabajar en equipo. Todavía no hay login, CRUD de negocio
-ni pantallas. El único HTTP implementado es `/health` y `/health/db`.
+**Andrew, entrega del 26 de octubre**: base Flask/PostgreSQL, autenticación de
+personal, roles, auditoría del core y comparación de sucursales. Reservas, inventario,
+producción, ventas y dashboard siguen a cargo de sus respectivos integrantes.
 
-Repositorio de trabajo: <https://github.com/A625A/Habits>. La base de esta entrega
-está integrada en `main` y sincronizada con las cuatro ramas del equipo.
-Andrew autorizó la publicación y esta integración; no se ha realizado despliegue.
+Repositorio: <https://github.com/A625A/Habits>. Fase 1 se publicó e integró en `main`.
+La entrega del 26 se prepara **solo localmente** en `feat/andrew-core-deploy`, desde
+`5bb3939`; requiere nueva autorización para push, merge o despliegue.
 
 ## Requisitos
 
@@ -25,7 +25,8 @@ git clone --branch feat/andrew-core-deploy https://github.com/A625A/Habits.git
 cd Habits
 ```
 
-Clonar sin seleccionar rama abre `main`, que también contiene esta base.
+Clonar sin seleccionar rama abre `main`. Hasta autorizar la publicación, el remoto
+contiene Fase 1 y no esta ampliación de autenticación/auditoría.
 
 ```bash
 python3 -m venv .venv
@@ -39,8 +40,10 @@ python -c 'import secrets; print(secrets.token_hex(32))'
 Guardar el último valor como `SECRET_KEY` en `.env`. `DATABASE_URL` y
 `TEST_DATABASE_URL` deben usar las contraseñas elegidas en el paso siguiente.
 Las variables del entorno tienen prioridad sobre `.env`. No reemplazar un `.env`
-existente ni compartirlo. La clave queda preparada para la autenticación posterior;
-esta fase no crea sesiones ni implementa permisos efectivos.
+existente ni compartirlo. `SECRET_KEY` es obligatoria: aleatoria, al menos 32 caracteres,
+sin valores de ejemplo. `HABITS_ENV=development` permite cookies en HTTP local;
+`HABITS_ENV=production` activa cookies Secure para HTTPS. En ambos casos se usa
+HttpOnly, SameSite=Lax y expiración fija de ocho horas.
 
 ## PostgreSQL local aislado
 
@@ -81,6 +84,7 @@ pg_ctl -D .local/postgres -l .local/postgres.log -o "-h 127.0.0.1 -p 55432 -k '$
 ```bash
 python -m flask --app app db-init
 python -m flask --app app db-seed
+python -m flask --app app db-upgrade
 python -m flask --app app run --host 127.0.0.1 --port 5000
 ```
 
@@ -89,6 +93,10 @@ no contiene DROP ni modifica datos de una instalación previa. No repetirlo si y
 se creó el esquema. `db-seed` ejecuta `sql/08_seed.sql`: dos sucursales ficticias,
 sin usuarios, productos ni contraseñas. Es repetible y preserva las filas existentes.
 En la copia original de Andrew ambos comandos ya se ejecutaron al validar la entrega.
+
+Si ya tenés Fase 1, ejecutar **solo** `db-upgrade`: aplica `01_auth.sql` y
+`06_auditoria.sql` juntos, en una transacción, sin cambiar columnas existentes.
+Es repetible y no carga cuentas ni datos de negocio.
 
 ```bash
 curl --fail http://127.0.0.1:5000/health
@@ -102,6 +110,54 @@ agreguen rutas. Nunca se crea la base al importar Flask o iniciar un worker.
 
 También se puede aplicar cada SQL con `psql -v ON_ERROR_STOP=1 --single-transaction -f`
 usando una conexión configurada por el operador; no aplicar todos los SQL a ciegas.
+
+## Primer administrador, login y permisos
+
+El operador de la copia local debe crear el primer administrador con **sus datos**:
+
+```bash
+python -m flask --app app create-admin
+```
+
+Pide nombre, correo, código de una sucursal activa (`DEMO-01` o `DEMO-02` en el
+seed actual) y contraseña oculta con confirmación. No recibe la contraseña como
+argumento y no existen credenciales predeterminadas. El comando rechaza nuevas
+altas iniciales si ya hay un administrador, incluso inactivo; recuperación de una
+cuenta bloqueada requiere intervención explícita del operador, no registro público.
+
+Abrir `http://127.0.0.1:5000/auth/login`. Tras iniciar sesión, `/auth/cuenta` permite
+cerrarla y, para administradores, acceder al registro de personal en `/auth/register`.
+La contraseña requiere 12–128 caracteres y se almacena con scrypt de Werkzeug.
+La cookie no contiene contraseñas ni roles; los tokens se guardan hasheados en
+PostgreSQL. Logout revoca el token, y los cambios de contraseña, rol, estado o
+sucursal del usuario revocan sus sesiones. Desactivar/reactivar una sucursal también.
+
+| Acción | Administrador | Gerente | Mesero |
+|---|---|---|---|
+| Ver su cuenta y cerrar sesión | Sí | Sí | Sí |
+| Registrar personal | Sí | No | No |
+| GET `/reportes/sucursales` | Todas las sedes | Solo su sede | No |
+
+Las pantallas de autenticación son mínimas y propias de Andrew; Brian conserva
+`base.html`, navegación y dashboard. Los POST requieren CSRF. `/auth/me` ofrece
+los datos de la sesión actual para integración, sin hashes ni tokens.
+
+La base de desarrollo conserva **cero usuarios** hasta que el operador ejecute el
+alta inicial. Las cuentas y contraseñas efímeras usadas en pruebas nunca se cargan allí.
+
+## Auditoría y reporte
+
+La tabla `auditoria` registra INSERT/UPDATE/DELETE de `sucursales` y `usuarios`,
+incluidos cambios por SQL directo. Se guarda dentro de la misma transacción;
+ROLLBACK elimina el evento. No reconstruye cambios anteriores a la instalación.
+Campos sensibles de usuarios quedan excluidos mediante una lista permitida.
+SQL directo sin actor de aplicación registra `usuario_id = NULL` y el usuario de BD.
+
+`sql/reportes_sucursales.sql` compara personal real por sucursal. Ventas/reservas
+devuelven NULL y el endpoint informa `pendiente_modulos`: no se inventan ceros.
+`sql/pendientes/comparacion_ventas_reservas.sql` agrega ambas métricas por separado;
+requiere las vistas contratadas de Rodrigo/Chris y **no se ejecuta automáticamente**.
+Ver [integración del 26](docs/integracion-26-octubre.md).
 
 ## Pruebas y calidad
 
@@ -120,6 +176,7 @@ a una base con datos importantes, aunque termine en `_test`.
 
 Se comprueban HTTP, fallas de conexión, DDL atómico, seed repetible, restricciones,
 relaciones y COMMIT/ROLLBACK. Evidencia y límites: [docs/verificacion.md](docs/verificacion.md).
+Para esta ampliación: [verificación del 26](docs/verificacion-26-octubre.md).
 
 ## Estructura y trabajo del equipo
 
@@ -131,6 +188,8 @@ app/services/            servicios de negocio por integrante
 app/templates/           Brian coordina base.html; cada dueño su módulo
 app/static/css/          estilos — Brian
 sql/01_core.sql          sucursales y usuarios — Andrew
+sql/01_auth.sql          sesiones y revocación — Andrew
+sql/06_auditoria.sql     tabla y triggers — Andrew
 sql/08_seed.sql          seed mínimo — Andrew coordina ampliaciones
 docs/contratos.md        IDs, rutas, límites y orden de SQL
 docs/DER-base.md         diagrama del esquema realmente implementado
@@ -140,7 +199,7 @@ wsgi.py                 entrada WSGI
 
 | Integrante | Rama | Punto de partida |
 |---|---|---|
-| Andrew | `feat/andrew-core-deploy` | Core y conexión; login en la siguiente fase |
+| Andrew | `feat/andrew-core-deploy` | Autenticación, auditoría y SQL de comparación |
 | Rodrigo | `feat/rodrigo-stock-sales` | `app/routes/inventario.py`, `ventas.py`; SQL 03–05 |
 | Chris | `feat/chris-reservas` | `app/routes/clientes.py`, `reservas.py`; SQL 02 |
 | Brian | `feat/brian-ui-docs` | `app/routes/inicio.py`, `reportes.py`, templates y CSS |
@@ -151,6 +210,7 @@ y `git switch NOMBRE` para seleccionar su rama.
 Cada persona hace sus commits; no se fabrican aportes de los demás.
 
 Antes de implementar, leer [contratos](docs/contratos.md) y [alcance](docs/fase-1-andrew.md).
+El alcance actual de Andrew está en [andrew-26-octubre.md](docs/andrew-26-octubre.md).
 Los Blueprints vacíos permiten agregar rutas sin modificar `app/__init__.py`.
 No cambiar columnas compartidas sin coordinación con Andrew. Cada módulo posee
 sus servicios, SQL y pruebas. Brian ampliará este README para la entrega final.
@@ -168,3 +228,10 @@ y configuración mediante `DATABASE_URL` y `SECRET_KEY`; no se ha creado ningún
 servicio remoto. Antes de desplegar faltan los módulos funcionales y autorización.
 No aplicar DDL ni seed en cada arranque. Los costos y ajustes del servicio se
 verificarán al preparar ese despliegue; esta entrega no los presupone.
+
+En Railway configurar `HABITS_ENV=production`, `SECRET_KEY` aleatoria y
+`DATABASE_URL` del servicio, sin debug. El comando previsto para Brian es
+`gunicorn --bind 0.0.0.0:$PORT wsgi:app`. `wsgi.py` ya expone la factory y no necesita
+cambios ni DDL al importar. Antes de exponerlo públicamente, Brian y Andrew deben
+validar HTTPS/proxy, límites de intentos de login y mantenimiento de sesiones
+expiradas. Esta fase verifica autenticación local, no endurecimiento de producción.

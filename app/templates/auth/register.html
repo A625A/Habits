@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registrar personal · Habits</title>
+<main>
+  <h1>Registrar personal</h1>
+  {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+  {% for message in get_flashed_messages() %}<p role="status">{{ message }}</p>{% endfor %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <p><label>Nombre <input name="nombre" maxlength="120" required></label></p>
+    <p><label>Correo <input type="email" name="email" maxlength="254" autocomplete="off" required></label></p>
+    <p><label>Contraseña <input type="password" name="password" minlength="12" maxlength="128" autocomplete="new-password" required></label></p>
+    <p><label>Rol <select name="rol" required>{% for rol in roles %}<option value="{{ rol }}"{% if rol == 'mesero' %} selected{% endif %}>{{ rol }}</option>{% endfor %}</select></label></p>
+    <p><label>Sucursal <select name="sucursal_id" required>{% for branch in branches %}<option value="{{ branch.sucursal_id }}">{{ branch.nombre }}</option>{% endfor %}</select></label></p>
+    <button type="submit">Registrar</button>
+  </form>
+  <p><a href="{{ url_for('auth.account') }}">Volver a mi cuenta</a></p>
+</main>
+</html>

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Iniciar sesión · Habits</title>
+<main>
+  <h1>Iniciar sesión</h1>
+  {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <p><label>Correo <input type="email" name="email" autocomplete="username" maxlength="254" required></label></p>
+    <p><label>Contraseña <input type="password" name="password" autocomplete="current-password" maxlength="128" required></label></p>
+    <button type="submit">Entrar</button>
+  </form>
+  <p>El alta de personal la realiza un administrador.</p>
+</main>
+</html>
