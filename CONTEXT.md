@@ -19,3 +19,13 @@ sin requerir una cuenta de usuario.
 sin consumir otra vez los ingredientes utilizados al producirlo.
 
 **Reserva**: asignación de una mesa a un cliente durante un intervalo de tiempo.
+
+**Administrador**: usuario del personal autorizado para dar de alta a otros usuarios
+y asignar sus roles y sucursal de adscripción.
+
+**Gerente**: usuario que supervisa la información de su sucursal de adscripción.
+
+**Mesero**: usuario operativo del personal, sin facultad para registrar otros usuarios.
+
+**Bitácora**: historial de cambios confirmados en los registros del negocio,
+con la operación, el momento y el responsable cuando está identificado.
