@@ -94,3 +94,9 @@ Pendientes de decisión del equipo: alcance de permisos por sede, nombres reales
 de sucursales, precios y recetas, referencia del 15 %, reglas finales de reportes
 y DER general. El menú de doce productos y los noventa minutos de reserva son
 requisitos documentados para sus módulos, no funcionalidad de esta entrega.
+
+## Referencias técnicas consultadas
+
+- [Flask: application factories](https://flask.palletsprojects.com/en/stable/patterns/appfactories/).
+- [psycopg: gestión de transacciones](https://www.psycopg.org/psycopg3/docs/basic/transactions.html).
+- [PostgreSQL 17: restricciones](https://www.postgresql.org/docs/17/ddl-constraints.html).

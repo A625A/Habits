@@ -33,3 +33,5 @@ No se han probado login, autorización, reservas, ventas, inventario, reportes o
 Railway porque no forman parte de esta implementación. Tampoco se valida aún
 el DER general del equipo. Esta evidencia no equivale a una aplicación completa.
 El repositorio de destino es `A625A/Habits`; no se hizo push, merge ni despliegue.
+
+Revisión independiente en dos ejes: [revision-fase-1.md](revision-fase-1.md).
