@@ -8,6 +8,8 @@ Rama: `feat/andrew-core-deploy`. Cambios locales, sin push/merge/despliegue.
 - `python -m pytest`: **49 pruebas aprobadas**, PostgreSQL 17.11 real, 12,40 segundos.
 - `python -m mypy`: sin errores, 18 archivos de aplicación.
 - `ruff check .` y `ruff format --check .`: correctos.
+- Revisión independiente de estándares y especificación contra `5bb3939`:
+  cero hallazgos en ambos ejes; ver [revision-26-octubre.md](revision-26-octubre.md).
 - Actualización local de Fase 1: dos sucursales idénticas antes/después, cero usuarios.
 - Gunicorn con `wsgi:app`, HTTP real: salud DB, login, registro de personal,
   consulta de sesión, comparación y logout aprobados en schema temporal exclusivo.
