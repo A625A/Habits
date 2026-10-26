@@ -5,8 +5,9 @@ Base inicial de **Andrew, Fase 1**: Flask modular, PostgreSQL real, sucursales,
 usuarios y contratos para trabajar en equipo. Todavía no hay login, CRUD de negocio
 ni pantallas. El único HTTP implementado es `/health` y `/health/db`.
 
-Repositorio de trabajo: <https://github.com/A625A/Habits>. Esta entrega se prepara
-localmente en `feat/andrew-core-deploy`; no implica push, merge ni despliegue.
+Repositorio de trabajo: <https://github.com/A625A/Habits>. La base de esta entrega
+se comparte en las cuatro ramas del equipo; `main` conserva el estado inicial.
+La autorización de publicación comprende GitHub, sin merge ni despliegue.
 
 ## Requisitos
 
@@ -16,9 +17,15 @@ localmente en `feat/andrew-core-deploy`; no implica push, merge ni despliegue.
 
 ## Instalar Python y configurar variables
 
-Trabajar desde la raíz de esta copia. **Clonar el remoto todavía no descarga esta
-base hasta autorizar y realizar su publicación.** Después de publicarla, cada
-integrante podrá clonar el repositorio y seleccionar su rama.
+Clonar la rama propia (ejemplo de Andrew; ver las demás ramas más abajo) y trabajar
+desde la raíz del repositorio:
+
+```bash
+git clone --branch feat/andrew-core-deploy https://github.com/A625A/Habits.git
+cd Habits
+```
+
+Clonar sin seleccionar rama abre `main`, que todavía no contiene esta base.
 
 ```bash
 python3 -m venv .venv
@@ -60,7 +67,8 @@ administradora del clúster en Flask.
 En macOS, si falta PostgreSQL: `brew install postgresql@17` y agregar
 `$(brew --prefix postgresql@17)/bin` al PATH. No es necesario `brew services start`.
 
-En **esta copia** el clúster, las dos bases y el `.env` privado ya están preparados.
+En **la copia original de Andrew** el clúster, las dos bases y el `.env` privado ya
+están preparados; no se incluyen al clonar GitHub.
 Para detenerlo/reanudarlo sin borrar datos:
 
 ```bash
@@ -80,7 +88,7 @@ python -m flask --app app run --host 127.0.0.1 --port 5000
 no contiene DROP ni modifica datos de una instalación previa. No repetirlo si ya
 se creó el esquema. `db-seed` ejecuta `sql/08_seed.sql`: dos sucursales ficticias,
 sin usuarios, productos ni contraseñas. Es repetible y preserva las filas existentes.
-En esta copia ambos comandos ya fueron ejecutados al validar la entrega.
+En la copia original de Andrew ambos comandos ya se ejecutaron al validar la entrega.
 
 ```bash
 curl --fail http://127.0.0.1:5000/health
@@ -130,16 +138,16 @@ tests/                  pruebas HTTP, CLI y PostgreSQL
 wsgi.py                 entrada WSGI
 ```
 
-| Integrante | Rama local | Punto de partida |
+| Integrante | Rama | Punto de partida |
 |---|---|---|
 | Andrew | `feat/andrew-core-deploy` | Core y conexión; login en la siguiente fase |
 | Rodrigo | `feat/rodrigo-stock-sales` | `app/routes/inventario.py`, `ventas.py`; SQL 03–05 |
 | Chris | `feat/chris-reservas` | `app/routes/clientes.py`, `reservas.py`; SQL 02 |
 | Brian | `feat/brian-ui-docs` | `app/routes/inicio.py`, `reportes.py`, templates y CSS |
 
-Las cuatro ramas comparten la base terminada; siguen siendo **locales**. En esta
-copia se pueden seleccionar con `git switch NOMBRE`. Para trabajar simultáneamente,
-cada integrante necesita su propia copia una vez publicado el código autorizado.
+Las cuatro ramas comparten la misma base inicial. Cada integrante debe clonar su
+rama en una copia propia. Si ya clonó el repositorio, ejecutar `git fetch origin`
+y `git switch NOMBRE` para seleccionar su rama.
 Cada persona hace sus commits; no se fabrican aportes de los demás.
 
 Antes de implementar, leer [contratos](docs/contratos.md) y [alcance](docs/fase-1-andrew.md).

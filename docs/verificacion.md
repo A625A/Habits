@@ -32,6 +32,8 @@ continuar. El README contiene comandos de arranque y parada.
 No se han probado login, autorización, reservas, ventas, inventario, reportes o
 Railway porque no forman parte de esta implementación. Tampoco se valida aún
 el DER general del equipo. Esta evidencia no equivale a una aplicación completa.
-El repositorio de destino es `A625A/Habits`; no se hizo push, merge ni despliegue.
+El repositorio de destino es `A625A/Habits`. La verificación inicial se realizó
+antes de publicar. Posteriormente Andrew autorizó publicar los commits y las
+cuatro ramas en GitHub; `main` permanece intacta, sin merge ni despliegue.
 
 Revisión independiente en dos ejes: [revision-fase-1.md](revision-fase-1.md).
