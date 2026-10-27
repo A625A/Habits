@@ -5,6 +5,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import psycopg
+from flask import current_app
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.db import get_db
@@ -12,10 +13,55 @@ from app.db import get_db
 ROLES = ("administrador", "gerente", "mesero")
 _DUMMY_HASH = generate_password_hash(secrets.token_urlsafe(32), method="scrypt")
 SESSION_LIFETIME = timedelta(hours=8)
+DEMO_EMAIL = "admin@demo.invalid"
+
+
+def demo_enabled() -> bool:
+    return (
+        current_app.config["HABITS_ENV"] == "development"
+        and current_app.config["HABITS_DEMO_LOGIN"] is True
+    )
+
+
+def create_demo_admin() -> None:
+    if not demo_enabled():
+        raise ValueError("La cuenta demo requiere development y HABITS_DEMO_LOGIN=1.")
+    db = get_db()
+    with db.transaction():
+        db.execute("LOCK TABLE usuarios IN SHARE ROW EXCLUSIVE MODE")
+        existing = db.execute(
+            "SELECT password_hash, rol, activo FROM usuarios WHERE LOWER(email) = %s",
+            (DEMO_EMAIL,),
+        ).fetchone()
+        if existing:
+            if (
+                existing["rol"] != "administrador"
+                or not existing["activo"]
+                or not check_password_hash(existing["password_hash"], "123")
+            ):
+                raise ValueError("La cuenta reservada ya existe con otros datos; no se modificó.")
+            return
+        branch = db.execute(
+            "SELECT sucursal_id FROM sucursales WHERE codigo = 'DEMO-01' AND activa"
+        ).fetchone()
+        if branch is None:
+            raise ValueError("La demo requiere la sucursal DEMO-01 activa; ejecutá db-seed.")
+        db.execute(
+            """INSERT INTO usuarios (nombre, email, password_hash, rol, sucursal_id)
+               VALUES (%s, %s, %s, 'administrador', %s)""",
+            (
+                "Administrador demo",
+                DEMO_EMAIL,
+                generate_password_hash("123", method="scrypt"),
+                branch["sucursal_id"],
+            ),
+        )
 
 
 def _insert_user(nombre: str, email: str, password: str, rol: str, sucursal_id: int) -> int:
     nombre, email = nombre.strip(), email.strip().lower()
+    if email == DEMO_EMAIL:
+        raise ValueError("Correo reservado para el comando de demo local.")
     if not nombre or len(nombre) > 120:
         raise ValueError("Ingresá un nombre de hasta 120 caracteres.")
     if len(email) > 254 or not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email):
@@ -59,13 +105,18 @@ def bootstrap_admin(nombre: str, email: str, password: str, sucursal: str) -> in
 def authenticate(email: str, password: str) -> str | None:
     if len(email) > 254 or len(password) > 128:
         return None
+    email = email.strip().lower()
+    if email == "admin":
+        email = DEMO_EMAIL
+    if email == DEMO_EMAIL and not demo_enabled():
+        return None
     db = get_db()
     with db.transaction():
         user = db.execute(
             """SELECT u.usuario_id, u.password_hash, u.activo, s.activa
                FROM usuarios u JOIN sucursales s USING (sucursal_id)
                WHERE LOWER(u.email) = %s FOR SHARE OF u, s""",
-            (email.strip().lower(),),
+            (email,),
         ).fetchone()
         valid = check_password_hash(user["password_hash"] if user else _DUMMY_HASH, password)
         if not user or not valid or not user["activo"] or not user["activa"]:
@@ -90,8 +141,9 @@ def session_user(token: str) -> dict[str, Any] | None:
            FROM sesiones se JOIN usuarios u USING (usuario_id)
            JOIN sucursales s USING (sucursal_id)
            WHERE se.token_hash = %s AND se.expira_en > CURRENT_TIMESTAMP
-             AND u.activo AND s.activa""",
-            (hashlib.sha256(token.encode()).hexdigest(),),
+             AND u.activo AND s.activa
+             AND (LOWER(u.email) <> %s OR %s)""",
+            (hashlib.sha256(token.encode()).hexdigest(), DEMO_EMAIL, demo_enabled()),
         )
         .fetchone()
     )
