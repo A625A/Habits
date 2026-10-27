@@ -59,7 +59,8 @@ def create_demo_admin() -> None:
 
 
 def _insert_user(nombre: str, email: str, password: str, rol: str, sucursal_id: int) -> int:
-    nombre, email = nombre.strip(), email.strip().lower()
+    nombre = nombre.strip()
+    email = email.strip().lower()
     if email == DEMO_EMAIL:
         raise ValueError("Correo reservado para el comando de demo local.")
     if not nombre or len(nombre) > 120:
@@ -71,15 +72,17 @@ def _insert_user(nombre: str, email: str, password: str, rol: str, sucursal_id: 
     if rol not in ROLES:
         raise ValueError("Rol no válido.")
     db = get_db()
-    if not db.execute(
+    branch = db.execute(
         "SELECT sucursal_id FROM sucursales WHERE sucursal_id = %s AND activa", (sucursal_id,)
-    ).fetchone():
+    ).fetchone()
+    if branch is None:
         raise ValueError("Elegí una sucursal activa.")
+    password_hash = generate_password_hash(password, method="scrypt")
     try:
-        row: dict[str, Any] | None = db.execute(
+        row = db.execute(
             """INSERT INTO usuarios (nombre, email, password_hash, rol, sucursal_id)
                VALUES (%s, %s, %s, %s, %s) RETURNING usuario_id""",
-            (nombre, email, generate_password_hash(password, method="scrypt"), rol, sucursal_id),
+            (nombre, email, password_hash, rol, sucursal_id),
         ).fetchone()
     except psycopg.errors.UniqueViolation:
         raise ValueError("Ese correo ya está registrado.") from None
@@ -92,7 +95,8 @@ def bootstrap_admin(nombre: str, email: str, password: str, sucursal: str) -> in
     with db.transaction():
         # Serializa altas iniciales concurrentes sin crear dos administradores iniciales.
         db.execute("LOCK TABLE usuarios IN SHARE ROW EXCLUSIVE MODE")
-        if db.execute("SELECT 1 FROM usuarios WHERE rol = 'administrador'").fetchone():
+        existing_admin = db.execute("SELECT 1 FROM usuarios WHERE rol = 'administrador'").fetchone()
+        if existing_admin is not None:
             raise ValueError("Ya existe un administrador; usá el registro autenticado.")
         branch = db.execute(
             "SELECT sucursal_id FROM sucursales WHERE codigo = %s AND activa", (sucursal,)
@@ -118,43 +122,44 @@ def authenticate(email: str, password: str) -> str | None:
                WHERE LOWER(u.email) = %s FOR SHARE OF u, s""",
             (email,),
         ).fetchone()
-        valid = check_password_hash(user["password_hash"] if user else _DUMMY_HASH, password)
-        if not user or not valid or not user["activo"] or not user["activa"]:
+        password_hash = _DUMMY_HASH
+        if user is not None:
+            password_hash = user["password_hash"]
+        password_matches = check_password_hash(password_hash, password)
+        if user is None or not password_matches:
+            return None
+        if not user["activo"] or not user["activa"]:
             return None
         token = secrets.token_urlsafe(32)
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        expires_at = datetime.now(UTC) + SESSION_LIFETIME
         db.execute(
             "INSERT INTO sesiones (token_hash, usuario_id, expira_en) VALUES (%s, %s, %s)",
-            (
-                hashlib.sha256(token.encode()).hexdigest(),
-                user["usuario_id"],
-                datetime.now(UTC) + SESSION_LIFETIME,
-            ),
+            (token_hash, user["usuario_id"], expires_at),
         )
         return token
 
 
 def session_user(token: str) -> dict[str, Any] | None:
-    return (
-        get_db()
-        .execute(
-            """SELECT u.usuario_id, u.nombre, u.email, u.rol, u.sucursal_id
+    db = get_db()
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    result = db.execute(
+        """SELECT u.usuario_id, u.nombre, u.email, u.rol, u.sucursal_id
            FROM sesiones se JOIN usuarios u USING (usuario_id)
            JOIN sucursales s USING (sucursal_id)
            WHERE se.token_hash = %s AND se.expira_en > CURRENT_TIMESTAMP
              AND u.activo AND s.activa
              AND (LOWER(u.email) <> %s OR %s)""",
-            (hashlib.sha256(token.encode()).hexdigest(), DEMO_EMAIL, demo_enabled()),
-        )
-        .fetchone()
+        (token_hash, DEMO_EMAIL, demo_enabled()),
     )
+    return result.fetchone()
 
 
 def end_session(token: str) -> None:
-    with get_db().transaction():
-        get_db().execute(
-            "DELETE FROM sesiones WHERE token_hash = %s",
-            (hashlib.sha256(token.encode()).hexdigest(),),
-        )
+    db = get_db()
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    with db.transaction():
+        db.execute("DELETE FROM sesiones WHERE token_hash = %s", (token_hash,))
 
 
 def register_personnel(

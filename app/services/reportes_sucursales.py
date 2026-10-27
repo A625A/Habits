@@ -7,7 +7,8 @@ from app.db import get_db
 
 
 def comparar_sucursales(sucursal_id: int | None = None) -> list[dict[str, Any]]:
-    query = Path(current_app.root_path).parent / "sql" / "reportes_sucursales.sql"
-    return (
-        get_db().execute(query.read_text(encoding="utf-8"), {"sucursal_id": sucursal_id}).fetchall()
-    )
+    sql_file = Path(current_app.root_path).parent / "sql" / "reportes_sucursales.sql"
+    query = sql_file.read_text(encoding="utf-8")
+    db = get_db()
+    result = db.execute(query, {"sucursal_id": sucursal_id})
+    return result.fetchall()

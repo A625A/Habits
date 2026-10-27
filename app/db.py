@@ -33,14 +33,21 @@ def init_app(app: Flask) -> None:
     app.cli.add_command(upgrade_db_command)
 
 
+def _run_sql_scripts(filenames: list[str]) -> None:
+    sql_folder = Path(current_app.root_path).parent / "sql"
+    db = get_db()
+    with db.transaction():
+        for filename in filenames:
+            script = (sql_folder / filename).read_text(encoding="utf-8")
+            db.execute(script)
+
+
 @click.command("db-init")
 @with_appcontext
 def init_db_command() -> None:
     """Crear únicamente el esquema core en una base vacía, sin borrar datos."""
-    script = Path(current_app.root_path).parent / "sql" / "01_core.sql"
     try:
-        with get_db().transaction():
-            get_db().execute(script.read_text(encoding="utf-8"))
+        _run_sql_scripts(["01_core.sql"])
     except psycopg.Error:
         raise click.ClickException(
             "No se pudo crear el core. Verificá conexión y que las tablas no existan."
@@ -52,10 +59,8 @@ def init_db_command() -> None:
 @with_appcontext
 def seed_db_command() -> None:
     """Agregar las dos sucursales ficticias, conservando las existentes."""
-    script = Path(current_app.root_path).parent / "sql" / "08_seed.sql"
     try:
-        with get_db().transaction():
-            get_db().execute(script.read_text(encoding="utf-8"))
+        _run_sql_scripts(["08_seed.sql"])
     except psycopg.Error:
         raise click.ClickException(
             "No se pudo cargar el seed. Verificá conexión y ejecutá db-init primero."
@@ -67,11 +72,8 @@ def seed_db_command() -> None:
 @with_appcontext
 def upgrade_db_command() -> None:
     """Aplicar ampliaciones de Andrew sobre el core existente sin borrar datos."""
-    scripts = Path(current_app.root_path).parent / "sql"
     try:
-        with get_db().transaction():
-            get_db().execute((scripts / "01_auth.sql").read_text(encoding="utf-8"))
-            get_db().execute((scripts / "06_auditoria.sql").read_text(encoding="utf-8"))
+        _run_sql_scripts(["01_auth.sql", "06_auditoria.sql"])
     except psycopg.Error as error:
         raise click.ClickException(
             f"No se pudo actualizar el esquema (SQLSTATE {error.sqlstate}). "
