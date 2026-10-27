@@ -200,3 +200,11 @@ def test_csrf_malformado_unicode_se_rechaza_sin_error_interno(app):
     csrf(client)
     response = client.post("/auth/login", data={"csrf_token": "token-inválido"})
     assert response.status_code == 400
+
+
+def test_correo_demo_reservado_no_se_registra_como_personal(admin_app, admin_password):
+    client = admin_app.test_client()
+    assert login(client, admin_password).status_code == 303
+    response = register(client, secrets.token_urlsafe(24), email="ADMIN@demo.invalid")
+    assert response.status_code == 400
+    assert "reservado" in response.text

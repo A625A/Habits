@@ -3,6 +3,12 @@
 Actualiza los apartados de autenticación y auditoría de `contratos.md`.
 Las columnas y PK/FK originales de `usuarios` y `sucursales` no cambian.
 
+Actualización posterior autorizada: [demo-local-andrew.md](demo-local-andrew.md)
+añade un alias `admin` y un comando explícito para la cuenta demo local, sin DDL.
+Su contraseña corta es la única excepción a la política de personal. La bandera
+`HABITS_DEMO_LOGIN` está apagada por defecto y no habilita demo en producción.
+Las instrucciones de alta inicial que siguen describen el flujo normal sin demo.
+
 ## Actualizar una copia con Fase 1
 
 Instalar `requirements-dev.txt`, configurar una `SECRET_KEY` aleatoria de al menos

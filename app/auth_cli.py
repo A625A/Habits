@@ -2,7 +2,7 @@ import click
 import psycopg
 from flask.cli import with_appcontext
 
-from app.services.auth import bootstrap_admin
+from app.services.auth import bootstrap_admin, create_demo_admin
 
 
 @click.command("create-admin")
@@ -22,3 +22,18 @@ def create_admin_command(nombre: str, email: str, sucursal: str) -> None:
             "No se pudo crear el administrador. Revisá la conexión y el esquema."
         ) from None
     click.echo("Administrador creado. Iniciá sesión en /auth/login.")
+
+
+@click.command("create-demo-admin")
+@with_appcontext
+def create_demo_admin_command() -> None:
+    """Crear explícitamente el administrador de la demo local, sin reemplazar usuarios."""
+    try:
+        create_demo_admin()
+    except ValueError as error:
+        raise click.ClickException(str(error)) from None
+    except psycopg.Error:
+        raise click.ClickException(
+            "No se pudo preparar la demo. Revisá conexión y esquema."
+        ) from None
+    click.echo("Cuenta demo disponible. Iniciá sesión con admin / 123 en /auth/login.")

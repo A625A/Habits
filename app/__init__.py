@@ -14,6 +14,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
         DATABASE_URL=os.environ.get("DATABASE_URL"),
         SECRET_KEY=os.environ.get("SECRET_KEY"),
         HABITS_ENV=os.environ.get("HABITS_ENV", "development"),
+        HABITS_DEMO_LOGIN=os.environ.get("HABITS_DEMO_LOGIN", "0") == "1",
         SESSION_COOKIE_NAME="habits_session",
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Lax",
@@ -33,11 +34,12 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
     app.config["SESSION_COOKIE_SECURE"] = app.config["HABITS_ENV"] == "production"
 
     from app import db
-    from app.auth_cli import create_admin_command
+    from app.auth_cli import create_admin_command, create_demo_admin_command
     from app.routes import register_blueprints
 
     db.init_app(app)
     app.cli.add_command(create_admin_command)
+    app.cli.add_command(create_demo_admin_command)
     register_blueprints(app)
 
     @app.errorhandler(psycopg.Error)

@@ -33,6 +33,8 @@ def app(database_url):
             "TESTING": True,
             "DATABASE_URL": database_url,
             "SECRET_KEY": secrets.token_hex(32),
+            "HABITS_ENV": "development",
+            "HABITS_DEMO_LOGIN": False,
         }
     )
 

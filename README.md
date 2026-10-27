@@ -6,8 +6,8 @@ personal, roles, auditoría del core y comparación de sucursales. Reservas, inv
 producción, ventas y dashboard siguen a cargo de sus respectivos integrantes.
 
 Repositorio: <https://github.com/A625A/Habits>. Fase 1 se publicó e integró en `main`.
-La entrega del 26 se prepara **solo localmente** en `feat/andrew-core-deploy`, desde
-`5bb3939`; requiere nueva autorización para push, merge o despliegue.
+La entrega del 26 y el acceso demo se publican por autorización de Andrew en
+`feat/andrew-core-deploy`, desde `5bb3939`. No se autorizó merge ni despliegue.
 
 ## Requisitos
 
@@ -25,8 +25,8 @@ git clone --branch feat/andrew-core-deploy https://github.com/A625A/Habits.git
 cd Habits
 ```
 
-Clonar sin seleccionar rama abre `main`. Hasta autorizar la publicación, el remoto
-contiene Fase 1 y no esta ampliación de autenticación/auditoría.
+Clonar sin seleccionar rama abre `main`, que conserva Fase 1. Seleccionar la rama
+de Andrew para disponer de esta ampliación de autenticación/auditoría y demo.
 
 ```bash
 python3 -m venv .venv
@@ -113,6 +113,30 @@ usando una conexión configurada por el operador; no aplicar todos los SQL a cie
 
 ## Primer administrador, login y permisos
 
+### Acceso rápido para la demo local
+
+Andrew autorizó una cuenta de demostración: **usuario `admin`, contraseña `123`**.
+En su copia local ya está preparada. Para habilitarla en otra copia, configurar
+`HABITS_ENV=development` y `HABITS_DEMO_LOGIN=1` en `.env`, aplicar los comandos de
+esquema anteriores y ejecutar:
+
+```bash
+python -m flask --app app create-demo-admin
+python -m flask --app app run --host 127.0.0.1 --port 5000
+```
+
+Abrir `http://127.0.0.1:5000/auth/login` e ingresar `admin` y `123`, sin correo.
+El comando guarda un hash scrypt y no reemplaza cuentas existentes. Usa DEMO-01
+y el correo técnico reservado `admin@demo.invalid`; no envía correos ni modifica
+el esquema. La excepción de contraseña corta solo corresponde a esta demo.
+
+La bandera está apagada por defecto. Ni el arranque, ni seed, ni db-upgrade crean
+la cuenta. `HABITS_ENV=production` bloquea creación, login y sesiones demo, aunque
+se active la bandera o se copie la base local. Para deshabilitarla localmente,
+poner `HABITS_DEMO_LOGIN=0` y reiniciar Flask. No publicar el servidor de demo local.
+
+### Personal normal
+
 El operador de la copia local debe crear el primer administrador con **sus datos**:
 
 ```bash
@@ -142,8 +166,9 @@ Las pantallas de autenticación son mínimas y propias de Andrew; Brian conserva
 `base.html`, navegación y dashboard. Los POST requieren CSRF. `/auth/me` ofrece
 los datos de la sesión actual para integración, sin hashes ni tokens.
 
-La base de desarrollo conserva **cero usuarios** hasta que el operador ejecute el
-alta inicial. Las cuentas y contraseñas efímeras usadas en pruebas nunca se cargan allí.
+La base de desarrollo de Andrew contiene la cuenta demo autorizada. Las otras
+cuentas y contraseñas efímeras usadas en pruebas nunca se cargan allí. En una base
+nueva sin demo, `create-admin` continúa disponible para el alta inicial normal.
 
 ## Auditoría y reporte
 
