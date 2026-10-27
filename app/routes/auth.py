@@ -30,20 +30,25 @@ def auth_headers(response: Response) -> Response:
 
 @bp.route("/login", methods=["GET", "POST"])
 def login() -> ResponseReturnValue:
-    if request.method == "POST":
-        token = authenticate(request.form.get("email", ""), request.form.get("password", ""))
-        if token is None:
-            return render_template(
-                "auth/login.html", csrf_token=csrf_token(), error="Correo o contraseña incorrectos."
-            ), 401
-        old = session.get("token")
-        if isinstance(old, str):
-            end_session(old)
-        session.clear()
-        session["token"] = token
-        session.permanent = True
-        return redirect(url_for("auth.account"), code=303)
-    return render_template("auth/login.html", csrf_token=csrf_token())
+    if request.method != "POST":
+        return render_template("auth/login.html", csrf_token=csrf_token())
+
+    email = request.form.get("email", "")
+    password = request.form.get("password", "")
+    token = authenticate(email, password)
+    if token is None:
+        page = render_template(
+            "auth/login.html", csrf_token=csrf_token(), error="Correo o contraseña incorrectos."
+        )
+        return page, 401
+
+    previous_token = session.get("token")
+    if isinstance(previous_token, str):
+        end_session(previous_token)
+    session.clear()
+    session["token"] = token
+    session.permanent = True
+    return redirect(url_for("auth.account"), code=303)
 
 
 @bp.get("/me")
@@ -91,11 +96,13 @@ def register() -> ResponseReturnValue:
         else:
             flash("Personal registrado.")
             return redirect(url_for("auth.register"), code=303)
-    branches = (
-        get_db()
-        .execute("SELECT sucursal_id, nombre FROM sucursales WHERE activa ORDER BY codigo")
-        .fetchall()
-    )
-    return render_template(
+    db = get_db()
+    result = db.execute("SELECT sucursal_id, nombre FROM sucursales WHERE activa ORDER BY codigo")
+    branches = result.fetchall()
+    status = 200
+    if error:
+        status = 400
+    page = render_template(
         "auth/register.html", csrf_token=csrf_token(), branches=branches, roles=ROLES, error=error
-    ), 400 if error else 200
+    )
+    return page, status

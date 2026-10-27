@@ -15,15 +15,16 @@ def csrf_token() -> str:
 
 
 def check_csrf() -> None:
-    if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
-        expected = session.get("csrf_token")
-        supplied = request.form.get("csrf_token") or request.headers.get("X-CSRF-Token")
-        if (
-            not isinstance(expected, str)
-            or not supplied
-            or not secrets.compare_digest(expected.encode(), supplied.encode())
-        ):
-            abort(400, description="Solicitud inválida. Recargá el formulario.")
+    if request.method not in {"POST", "PUT", "PATCH", "DELETE"}:
+        return
+    expected = session.get("csrf_token")
+    supplied = request.form.get("csrf_token") or request.headers.get("X-CSRF-Token")
+    if (
+        not isinstance(expected, str)
+        or not supplied
+        or not secrets.compare_digest(expected.encode(), supplied.encode())
+    ):
+        abort(400, description="Solicitud inválida. Recargá el formulario.")
 
 
 def require_roles(*roles: str) -> Callable[..., Any]:
@@ -31,7 +32,9 @@ def require_roles(*roles: str) -> Callable[..., Any]:
         @wraps(view)
         def wrapped(*args: Any, **kwargs: Any) -> Any:
             token = session.get("token")
-            user = session_user(token) if isinstance(token, str) else None
+            user = None
+            if isinstance(token, str):
+                user = session_user(token)
             if user is None:
                 session.clear()
                 abort(401)
