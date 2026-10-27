@@ -31,3 +31,21 @@ y push de `feat/andrew-core-deploy`; no merge a main ni despliegue Railway.
   El servidor de comprobación se detuvo al terminar.
 - `.env` local habilitado explícitamente y cuenta demo creada; `.env` no se versiona.
 - Se conservan las dos sucursales. No hay DDL nuevo ni cambios en módulos del equipo.
+
+## Standards
+
+Revisión independiente y estática de `5bb3939...d967e40`: sin hallazgos accionables.
+La demo respeta su excepción autorizada, el hash scrypt, el bloqueo en producción,
+SQL parametrizado, transacciones y propiedad de módulos. No se identificaron smells
+que justifiquen cambios. La credencial pública de demo está expresamente autorizada.
+
+## Spec
+
+Revisión independiente y estática de `5bb3939...d967e40`: sin hallazgos accionables.
+Se cumple el acceso por alias, hash, activación explícita, bloqueo en producción
+incluyendo sesiones previas y conservación de cuentas existentes. No se agrega DDL
+ni funcionalidad de otros integrantes. Los commits anteriores conservan su alcance.
+
+Los revisores no ejecutaron pruebas ni accedieron a `.env`; la verificación operativa
+se registra arriba. Standards: **0 hallazgos**, sin incumplimientos detectados.
+Spec: **0 hallazgos**, sin incumplimientos detectados.
