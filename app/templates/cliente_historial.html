@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <a href="{{ url_for('clientes.index') }}" class="btn btn-outline-secondary mb-3">&larr; Volver a Clientes</a>
+    <h2>Historial de {{ cliente.nombre }}</h2>
+    <p class="text-muted">Tel: {{ cliente.telefono or 'N/A' }} | Email: {{ cliente.email or 'N/A' }} | Registrado: {{ cliente.fecha_registro }}</p>
+
+    <!-- Reservas -->
+    <h4 class="mt-4">Historial de Reservas</h4>
+    <table class="table table-sm table-bordered">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Sucursal</th>
+                <th>Mesa</th>
+                <th>Inicio</th>
+                <th>Fin</th>
+                <th>Personas</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in reservas %}
+            <tr>
+                <td>{{ r.reserva_id }}</td>
+                <td>{{ r.sucursal }}</td>
+                <td>Mesa #{{ r.numero_mesa }}</td>
+                <td>{{ r.fecha_inicio }}</td>
+                <td>{{ r.fecha_fin }}</td>
+                <td>{{ r.personas }}</td>
+                <td><span class="badge bg-secondary">{{ r.estado }}</span></td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="text-center">Sin reservas previas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Preferencias y Observaciones -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <h4>Preferencias</h4>
+            <ul class="list-group">
+                {% for p in preferencias %}
+                <li class="list-group-item">
+                    <strong>{{ p.producto or 'General' }}:</strong> {{ p.nota_preferencia }}
+                </li>
+                {% else %}
+                <li class="list-group-item text-muted">No hay notas de preferencia.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h4>Observaciones</h4>
+            <ul class="list-group">
+                {% for o in observaciones %}
+                <li class="list-group-item">
+                    <p class="mb-1">{{ o.observacion }}</p>
+                    <small class="text-muted">{{ o.fecha_creacion }}</small>
+                </li>
+                {% else %}
+                <li class="list-group-item text-muted">Sin observaciones registradas.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

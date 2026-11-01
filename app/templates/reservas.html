@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Gestión de Reservas</h2>
+
+    <!-- Formulario para agendar reserva -->
+    <div class="card my-3">
+        <div class="card-header">Agendar Nueva Reserva</div>
+        <div class="card-body">
+            <form action="{{ url_for('reservas.crear') }}" method="POST">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Sucursal *</label>
+                        <select name="sucursal_id" class="form-select" required>
+                            <option value="">Seleccione sucursal...</option>
+                            {% for s in sucursales %}
+                            <option value="{{ s.sucursal_id }}">{{ s.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Mesa *</label>
+                        <select name="mesa_id" class="form-select" required>
+                            <option value="">Seleccione mesa...</option>
+                            {% for m in mesas %}
+                            <option value="{{ m.mesa_id }}">Mesa #{{ m.numero_mesa }} (Cap: {{ m.capacidad }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Cliente *</label>
+                        <select name="cliente_id" class="form-select" required>
+                            <option value="">Seleccione cliente...</option>
+                            {% for c in clientes %}
+                            <option value="{{ c.cliente_id }}">{{ c.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Fecha y Hora Inicio *</label>
+                        <input type="datetime-local" name="fecha_inicio" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Fecha y Hora Fin *</label>
+                        <input type="datetime-local" name="fecha_fin" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Cantidad Personas *</label>
+                        <input type="number" name="personas" min="1" class="form-control" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">Confirmar Reserva</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <form method="GET" action="{{ url_for('reservas.index') }}" class="row g-2 mb-3">
+        <div class="col-auto">
+            <select name="sucursal_id" class="form-select">
+                <option value="">Todas las sucursales</option>
+                {% for s in sucursales %}
+                <option value="{{ s.sucursal_id }}" {% if f_sucursal == s.sucursal_id %}selected{% endif %}>{{ s.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-auto">
+            <input type="date" name="fecha" class="form-control" value="{{ f_fecha or '' }}">
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-secondary">Filtrar</button>
+        </div>
+    </form>
+
+    <!-- Tabla de reservas -->
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Sucursal</th>
+                <th>Mesa</th>
+                <th>Cliente</th>
+                <th>Inicio</th>
+                <th>Fin</th>
+                <th>Personas</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in reservas %}
+            <tr>
+                <td>{{ r.reserva_id }}</td>
+                <td>{{ r.sucursal }}</td>
+                <td>Mesa #{{ r.numero_mesa }}</td>
+                <td>{{ r.cliente }}</td>
+                <td>{{ r.fecha_inicio }}</td>
+                <td>{{ r.fecha_fin }}</td>
+                <td>{{ r.personas }}</td>
+                <td>
+                    <span class="badge {% if r.estado == 'confirmada' %}bg-success{% elif r.estado == 'cancelada' %}bg-danger{% else %}bg-secondary{% endif %}">
+                        {{ r.estado }}
+                    </span>
+                </td>
+                <td>
+                    {% if r.estado in ['pendiente', 'confirmada'] %}
+                    <form action="{{ url_for('reservas.cancelar', reserva_id=r.reserva_id) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Cancelar esta reserva?');">Cancelar</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9" class="text-center">No hay reservas registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
