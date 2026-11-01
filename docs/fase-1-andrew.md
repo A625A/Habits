@@ -1,5 +1,10 @@
 # Especificación de Andrew — Fase 1
 
+Nota del 31 de octubre: esta es la especificación histórica de infraestructura.
+La Fase 1 actual abarca el diseño de la base completa, sin la división anterior
+del equipo. Ver [DER-completo-propuesto.md](DER-completo-propuesto.md) para el modelo
+final aprobado y [implementacion-bd-fase-1.md](implementacion-bd-fase-1.md) para el SQL.
+
 ## Fuente y precedencia
 
 El pedido del usuario limita esta entrega a la infraestructura inicial. Los prompts

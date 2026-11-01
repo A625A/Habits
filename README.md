@@ -1,9 +1,15 @@
 # Habits
 Proyecto 2 base de Datos 1, Cafeteria y postreria "Habits"
 
-**Andrew, entrega del 26 de octubre**: base Flask/PostgreSQL, autenticación de
-personal, roles, auditoría del core y comparación de sucursales. Reservas, inventario,
-producción, ventas y dashboard siguen a cargo de sus respectivos integrantes.
+**Fase 1 actual: base PostgreSQL completa de 18 tablas.** El diseño fue aprobado por
+Andrew. Incluye catálogo común, reservas y visitas, inventario por lotes, ventas,
+auditoría y cinco reportes SQL. La implementación no añade backend, UI ni login.
+
+Ver [instalación de la base completa](docs/implementacion-bd-fase-1.md),
+[DER](docs/DER-completo-propuesto.md) y [verificación](docs/verificacion-bd-fase-1.md).
+Los comandos Flask antiguos de abajo conservan su alcance original; para las 18
+tablas usar `sql/fase1/inicializar.sql`. Las secciones de equipos/demo describen
+trabajo histórico y no limitan la Fase 1 actual ni crean cuentas automáticamente.
 
 Repositorio: <https://github.com/A625A/Habits>. Fase 1 se publicó e integró en `main`.
 La entrega del 26 y el acceso demo se publican por autorización de Andrew en

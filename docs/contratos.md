@@ -1,5 +1,10 @@
 # Contratos de integración — Fase 1
 
+Nota del 31 de octubre: este documento conserva los contratos y el reparto
+históricos. Andrew reemplazó ese reparto para diseñar la base completa. El modelo
+actual para aprobación está en [DER-completo-propuesto.md](DER-completo-propuesto.md);
+el esquema ya fue aprobado y su implementación SQL no cambia las interfaces Flask.
+
 Actualización del 26 de octubre: ver [integracion-26-octubre.md](integracion-26-octubre.md).
 Ese documento reemplaza las indicaciones históricas de este archivo sobre auth,
 sesiones, auditoría y db-upgrade; el esquema core y las responsabilidades se conservan.
