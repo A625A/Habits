@@ -232,3 +232,12 @@ Se conservan los cinco reportes SQL. Las interfaces de presentación/reportes,
 las siguientes fases y Railway no se desarrollan en esta entrega. No se publica
 la rama ni se fusiona con main. La evidencia de verificación y revisión está en
 [verificacion-backend-fase-2.md](verificacion-backend-fase-2.md).
+
+
+## Presentación de SQL avanzado
+
+Los cinco temas —índices/EXPLAIN ANALYZE, vistas/CTE, funciones/procedimientos,
+triggers y transacciones/ACID— están explicados con consultas ejecutables en
+[sql-aplicado-fase-2.md](sql-aplicado-fase-2.md). Incluye un script de consultas de
+solo lectura y un ensayo de venta con ROLLBACK restringido a una base de pruebas.
+No añade objetos SQL para demostrar conceptos ya resueltos.

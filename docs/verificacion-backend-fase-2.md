@@ -10,7 +10,7 @@ Railway. Referencia Chris: `f27bb8e849b2c9293cf6c146cbc836bc5ba905dd`.
 - Nuevas pruebas HTTP: **65 passed in 29.24s**.
 - Suite completa: **156 passed in 64.01s**; ninguna prueba omitida.
 - `ruff check .`: **All checks passed!**.
-- `ruff format --check .`: **60 files already formatted**.
+- `ruff format --check .`: **62 files already formatted**.
 - `mypy`: **Success: no issues found in 24 source files**.
 - `git diff --check`: sin errores.
 
@@ -60,7 +60,57 @@ Cobertura adicional sobre las 91 pruebas SQL/HTTP/CLI previas:
 - Servidor WSGI real temporal en `127.0.0.1` con puerto efímero: login por HTTP,
   cookie, rotación CSRF, alta JSON y consulta del cliente. Se detuvo al finalizar.
 
-## Revisión independiente
+## Ejemplos de SQL avanzado ejecutados
 
-Pendiente de incorporar los resultados de estándares y especificación sobre el
-commit de implementación. Esta sección se actualizará antes del cierre.
+Se ejecutaron con `psql -X -v ON_ERROR_STOP=1` en otro esquema efímero de la base
+`_test`, con usuario, receta y lote sintéticos exclusivamente dentro de ese esquema:
+
+- `sql/fase2/consultas_presentacion.sql`: OK; índices/EXPLAIN ANALYZE, vistas,
+  CTE, función de reporte, triggers y auditoría; transacción de solo lectura.
+- `sql/fase2/ensayo_venta.psql`: OK; CALL mostró la venta dentro de la transacción,
+  forzó restricciones diferidas y la revirtió. Se verificó con consultas nuevas:
+  cero ventas, mismo saldo de ingredientes y misma cantidad de eventos de auditoría.
+
+El esquema se eliminó al terminar. La corrección posterior a la suite completa
+solo añadió documentación y estos scripts; no cambió la aplicación ni las pruebas.
+Se volvieron a verificar Ruff, formato, mypy y diff después de esa corrección.
+
+## Standards
+
+Revisión independiente de lectura de `aa229aa...64633ea`, considerando la
+autorización vigente de Fase 2 y su matriz de permisos: **sin incumplimientos
+accionables de estándares**.
+
+- `app/api.py`: autentica antes de operar; transacción explícita, rol limitado,
+  actor desde `g.user` y confirmación antes de responder, conforme a AGENTS.md y
+  el contrato de transacciones/auditoría.
+- `app/services/operaciones.py`: valores parametrizados e identificadores compuestos
+  con `sql.Identifier`; nombres procedentes del código y campos permitidos.
+- `sql/fase2/10_backend.sql`: recepción mediante procedimiento, operador validado,
+  bloqueo de maestros, SECURITY DEFINER con search_path fijo y revocación a PUBLIC;
+  no concede DML directo sobre saldos.
+- `app/routes/catalogo.py`: edición de recetas solo por administrador, atómica y
+  bajo bloqueo del producto.
+- `app/routes/clientes.py`: historial por sede y compras mediante visitas,
+  consistente con el glosario y ADR.
+
+Juicios de diseño: no se identificó un smell de Fowler que justificara un cambio
+con beneficio demostrable. Los auxiliares son pequeños y tienen usos reales.
+El revisor no ejecutó pruebas ni modificó archivos.
+
+## Spec
+
+La revisión de lectura inicial detectó **un hallazgo P2 documental**: faltaban
+EXPLAIN ANALYZE y ejemplos ejecutables de los cinco temas de SQL avanzado del
+apartado 7 de la solicitud. Se resolvió con `docs/sql-aplicado-fase-2.md`, los dos
+scripts verificados y el enlace en el contrato de endpoints.
+
+El revisor volvió a inspeccionar la corrección y confirmó: «Hallazgo resuelto»;
+la guía cubre los cinco temas, explica EXPLAIN ANALYZE/CREATE INDEX, distingue
+funciones y procedimientos y relaciona ACID con los endpoints. Sin observaciones
+adicionales. No identificó defectos funcionales demostrables ni ampliaciones
+indebidas en los módulos revisados. No repitió la suite.
+
+Standards: **0 hallazgos**. Spec: **1 detectado y resuelto; 0 pendientes**.
+La Fase 2 queda implementada y probada para avanzar. El uso operativo requiere
+cargar los datos reales enumerados en la guía; no se avanzó a la fase siguiente.
