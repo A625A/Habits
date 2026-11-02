@@ -106,3 +106,9 @@ def register() -> ResponseReturnValue:
         "auth/register.html", csrf_token=csrf_token(), branches=branches, roles=ROLES, error=error
     )
     return page, status
+
+
+@bp.get("/csrf")
+def csrf() -> dict[str, str]:
+    """Token de la sesión actual para clientes HTTP; rotarlo después de login."""
+    return {"csrf_token": csrf_token()}

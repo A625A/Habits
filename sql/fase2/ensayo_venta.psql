@@ -1,0 +1,26 @@
+-- Ensayo ejecutable únicamente en una base _test con datos preparados por el operador.
+-- Reutiliza una receta y existencias existentes; no carga datos ni confirma la venta.
+\set ON_ERROR_STOP on
+SELECT right(current_database(),5)='_test' AS es_prueba \gset
+\if :es_prueba
+\else
+    \echo 'El ensayo requiere una base aislada terminada en _test.'
+    \quit 1
+\endif
+\prompt 'ID de sucursal existente: ' sucursal_id
+\prompt 'ID de usuario activo autorizado en esa sucursal: ' usuario_id
+\prompt 'ID de producto con receta/stock suficiente: ' producto_id
+\prompt 'Cantidad entera positiva a ensayar: ' cantidad
+BEGIN;
+SET LOCAL ROLE habits_operaciones;
+CALL registrar_venta(
+    :'sucursal_id'::bigint,:'usuario_id'::bigint,'llevar',NULL::bigint,NULL::bigint,
+    jsonb_build_array(jsonb_build_object('producto_id',:'producto_id'::bigint,'cantidad',:'cantidad'::integer)),
+    NULL::bigint
+) \gset
+-- Fuerza ahora las comprobaciones diferidas que normalmente ocurren al COMMIT.
+SET CONSTRAINTS ALL IMMEDIATE;
+SELECT venta_id,total FROM v_totales_ventas WHERE venta_id=:'p_venta'::bigint;
+ROLLBACK;
+-- La venta y sus consumos/auditoría se revirtieron; devuelve cero.
+SELECT count(*) AS ventas_tras_rollback FROM ventas WHERE venta_id=:'p_venta'::bigint;
