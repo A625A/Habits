@@ -1,25 +1,29 @@
 # Habits
 Proyecto 2 base de Datos 1, Cafeteria y postreria "Habits"
 
-**Fase 1 actual: base PostgreSQL completa de 18 tablas.** El diseño fue aprobado por
-Andrew. Incluye catálogo común, reservas y visitas, inventario por lotes, ventas,
-auditoría y cinco reportes SQL. La implementación no añade backend, UI ni login.
+**Fases 1 y 2 integradas en `main`: base PostgreSQL y backend funcional.**
+Se conservan las 18 tablas, restricciones, procedimientos, triggers de auditoría,
+cinco reportes SQL, autenticación y endpoints JSON de clientes, reservas/visitas,
+catálogo/recetas, inventario, producción y ventas.
 
-Ver [instalación de la base completa](docs/implementacion-bd-fase-1.md),
-[DER](docs/DER-completo-propuesto.md) y [verificación](docs/verificacion-bd-fase-1.md).
-Los comandos Flask antiguos de abajo conservan su alcance original; para las 18
-tablas usar `sql/fase1/inicializar.sql`. Las secciones de equipos/demo describen
-trabajo histórico y no limitan la Fase 1 actual ni crean cuentas automáticamente.
+El historial incluye los commits originales de Chris mediante un merge normal
+con resolución selectiva. Su trabajo de clientes y reservas ya está adaptado al
+backend actual; el SQL anterior y las plantillas no se reinstalan.
+Ver [integración, contribuciones y pendientes](docs/integracion-main-fase-2.md).
 
-Repositorio: <https://github.com/A625A/Habits>. Fase 1 se publicó e integró en `main`.
-La entrega del 26 y el acceso demo se publican por autorización de Andrew en
-`feat/andrew-core-deploy`, desde `5bb3939`. No se autorizó merge ni despliegue.
+- [Instalación de la base completa](docs/implementacion-bd-fase-1.md) y [DER](docs/DER-completo-propuesto.md).
+- [Backend: instalación, permisos, endpoints y ejemplos](docs/fase-2-backend.md).
+- [SQL avanzado para la presentación](docs/sql-aplicado-fase-2.md).
 
-## Fase 2 — Backend funcional
+La UI, la integración de reportes en sus interfaces definitivas y Railway siguen
+pendientes. Los comandos Flask antiguos de abajo conservan su alcance original;
+para las 18 tablas usar `sql/fase1/inicializar.sql` y luego `db-backend-upgrade`.
+Las secciones de equipos/demo documentan trabajo histórico; no crean cuentas
+ni cargan datos operativos automáticamente.
 
-Endpoints JSON de clientes, reservas/visitas, catálogo/recetas, inventario,
-producción y ventas. Instalación explícita, permisos, cuerpos de petición y ejemplos
-en [docs/fase-2-backend.md](docs/fase-2-backend.md). No incluye UI ni despliegue.
+Repositorio: <https://github.com/A625A/Habits>. La integración y el push a `main`
+están autorizados para esta entrega una vez superadas las verificaciones.
+No se autoriza despliegue ni trabajo de la siguiente fase.
 
 ## Requisitos
 
@@ -29,16 +33,15 @@ en [docs/fase-2-backend.md](docs/fase-2-backend.md). No incluye UI ni despliegue
 
 ## Instalar Python y configurar variables
 
-Clonar la rama propia (ejemplo de Andrew; ver las demás ramas más abajo) y trabajar
-desde la raíz del repositorio:
+Clonar `main`, que reúne las fases implementadas, y trabajar desde la raíz:
 
 ```bash
-git clone --branch feat/andrew-core-deploy https://github.com/A625A/Habits.git
+git clone --branch main https://github.com/A625A/Habits.git
 cd Habits
 ```
 
-Clonar sin seleccionar rama abre `main`, que conserva Fase 1. Seleccionar la rama
-de Andrew para disponer de esta ampliación de autenticación/auditoría y demo.
+Las ramas del reparto histórico se conservan; no son el punto de partida para
+instalar la versión integrada actual.
 
 ```bash
 python3 -m venv .venv

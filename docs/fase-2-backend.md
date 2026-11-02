@@ -215,8 +215,9 @@ confirmada y el flujo de cancelación, ahora mediante el procedimiento definitiv
 Se sustituyeron formularios, flash, redirecciones y respuestas HTML por JSON;
 se añadieron autenticación, CSRF, permisos de sucursal, actor, paginación y errores
 controlados. La duración viene del servidor y las reglas relacionales de PostgreSQL.
-El historial añade visitas reales y compras del esquema final. No se fusionó ni
-se hizo cherry-pick de su rama. No se incorporaron `sql/02_clientes_reservas.sql`,
+El historial añade visitas reales y compras del esquema final. Durante la implementación inicial no se fusionó ni se hizo cherry-pick de su rama.
+La integración posterior a `main` conserva sus commits originales mediante merge
+normal con resolución selectiva; ver [registro de integración](integracion-main-fase-2.md). No se incorporaron `sql/02_clientes_reservas.sql`,
 `sql/reportes_clientes.sql` ni sus tres plantillas.
 
 ## Datos operativos pendientes y alcance
@@ -229,8 +230,9 @@ ni saldos para hacer funcionar las ventas. Sin receta o stock, la operación fal
 atómicamente. No se alteró la base de desarrollo para probar este backend.
 
 Se conservan los cinco reportes SQL. Las interfaces de presentación/reportes,
-las siguientes fases y Railway no se desarrollan en esta entrega. No se publica
-la rama ni se fusiona con main. La evidencia de verificación y revisión está en
+las siguientes fases y Railway no se desarrollan en esta entrega. El cierre inicial
+fue local; la posterior integración y publicación autorizada en `main` se documenta
+en [integracion-main-fase-2.md](integracion-main-fase-2.md). La evidencia de verificación y revisión está en
 [verificacion-backend-fase-2.md](verificacion-backend-fase-2.md).
 
 
