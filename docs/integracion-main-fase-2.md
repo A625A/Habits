@@ -29,6 +29,7 @@ atrasada; se integró la referencia remota actualizada, sin reescribir ninguna r
    `a95f2d4` en su ascendencia.
 2. Merge normal `--no-ff --no-commit` de `origin/feat/chris-reservas`, con resolución
    selectiva de los dos conflictos de rutas y exclusión de cinco adiciones.
+   Commit resultante: `c775f35a8ac1c8dae79bcc87a27c61333db46815`.
    No se usó squash, cherry-pick, rebase ni estrategia global `ours`.
 
 Los tres commits de Chris conservan sus SHA, autor/committer `chris`, fechas y mensajes:
@@ -79,7 +80,31 @@ Además se verifica ascendencia desde `aa229aa` y los tres commits de Chris.
   mypy: **Success: no issues found in 24 source files**; diff sin errores.
 - La suite se ejecutó después de resolver el merge, antes de confirmarlo. Los
   cambios posteriores al pase de pruebas solo son documentación.
-- Revisión independiente de estándares/especificación: se incorporará antes del push.
+- Revisión independiente de estándares y especificación: **0 hallazgos** en cada eje.
+
+### Standards
+
+Sin hallazgos. El diff modifica únicamente README y dos documentos; aplicación,
+SQL, pruebas, configuración y dependencias permanecen idénticos. Los padres de
+ambos merges coinciden con la integración documentada y los commits originales
+de Chris conservan sus metadatos. Los dos SQL y tres HTML excluidos están ausentes
+del árbol vigente y presentes en su rama original. La documentación respeta el
+vocabulario de CONTEXT, la separación entre reservas, visitas y ventas del ADR,
+y los límites de alcance y autorización. Árbol limpio y diff sin errores.
+No hay problemas accionables de diseño: el diff no introduce lógica ni abstracciones.
+
+### Spec
+
+Sin hallazgos: no faltan requisitos ni hay ampliación de alcance en el diff.
+Ambos merges tienen dos padres; Fase 1, Fase 2 y los tres commits de Chris son
+ancestros de HEAD. Las exclusiones solicitadas y la identidad del código funcional
+con Fase 2 están verificadas. README e informe reconocen la adaptación de clientes
+y reservas y distinguen lo terminado de UI, interfaces de reportes, documentación
+final, despliegue y datos operativos pendientes.
+
+Ambas revisiones fueron independientes y de solo lectura; no repitieron pruebas.
+El registro de sus resultados y la publicación autorizada son pasos posteriores
+a la revisión, sin cambios funcionales.
 
 ## Resumen para compartir con el grupo
 
