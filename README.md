@@ -15,6 +15,12 @@ Repositorio: <https://github.com/A625A/Habits>. Fase 1 se publicó e integró en
 La entrega del 26 y el acceso demo se publican por autorización de Andrew en
 `feat/andrew-core-deploy`, desde `5bb3939`. No se autorizó merge ni despliegue.
 
+## Fase 2 — Backend funcional
+
+Endpoints JSON de clientes, reservas/visitas, catálogo/recetas, inventario,
+producción y ventas. Instalación explícita, permisos, cuerpos de petición y ejemplos
+en [docs/fase-2-backend.md](docs/fase-2-backend.md). No incluye UI ni despliegue.
+
 ## Requisitos
 
 - Python 3.12 o posterior (verificado localmente con 3.14.6).

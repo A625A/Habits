@@ -31,6 +31,7 @@ def init_app(app: Flask) -> None:
     app.cli.add_command(init_db_command)
     app.cli.add_command(seed_db_command)
     app.cli.add_command(upgrade_db_command)
+    app.cli.add_command(upgrade_backend_command)
 
 
 def _run_sql_scripts(filenames: list[str]) -> None:
@@ -80,3 +81,17 @@ def upgrade_db_command() -> None:
             "Verificá conexión y ejecutá db-init primero en una base nueva."
         ) from None
     click.echo("Ampliaciones de Andrew aplicadas.")
+
+
+@click.command("db-backend-upgrade")
+@with_appcontext
+def upgrade_backend_command() -> None:
+    """Habilitar el backend sobre la Fase 1 instalada, sin cargar datos operativos."""
+    try:
+        _run_sql_scripts(["fase2/10_backend.sql"])
+    except psycopg.Error as error:
+        raise click.ClickException(
+            f"No se pudo habilitar el backend (SQLSTATE {error.sqlstate}). "
+            "Instalá primero sql/fase1/inicializar.sql como propietario."
+        ) from None
+    click.echo("Permisos y recepción de Fase 2 habilitados.")

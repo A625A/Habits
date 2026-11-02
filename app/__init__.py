@@ -5,6 +5,8 @@ from typing import Any
 import psycopg
 from dotenv import load_dotenv
 from flask import Flask
+from werkzeug.exceptions import HTTPException
+from werkzeug.wrappers import Response
 
 
 def create_app(test_config: dict[str, Any] | None = None) -> Flask:
@@ -41,6 +43,14 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
     app.cli.add_command(create_admin_command)
     app.cli.add_command(create_demo_admin_command)
     register_blueprints(app)
+
+    @app.errorhandler(HTTPException)
+    def http_error(error: HTTPException) -> Response:
+        response = error.get_response()
+        response.data = app.json.dumps({"error": error.description})
+        response.content_type = "application/json"
+        response.headers["Cache-Control"] = "no-store"
+        return response
 
     @app.errorhandler(psycopg.Error)
     def database_error(error: psycopg.Error) -> tuple[dict[str, str], int]:
