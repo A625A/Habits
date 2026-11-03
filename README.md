@@ -15,8 +15,10 @@ Ver [integración, contribuciones y pendientes](docs/integracion-main-fase-2.md)
 - [Backend: instalación, permisos, endpoints y ejemplos](docs/fase-2-backend.md).
 - [SQL avanzado para la presentación](docs/sql-aplicado-fase-2.md).
 
-La UI, la integración de reportes en sus interfaces definitivas y Railway siguen
-pendientes. Los comandos Flask antiguos de abajo conservan su alcance original;
+La plantilla Bootstrap, el inicio y la presentación de los cinco reportes ya están
+implementados. Las pantallas operativas de clientes, reservas, inventario, producción
+y ventas, además de Railway, siguen pendientes. Los comandos Flask antiguos de abajo
+conservan su alcance original;
 para las 18 tablas usar `sql/fase1/inicializar.sql` y luego `db-backend-upgrade`.
 Las secciones de equipos/demo documentan trabajo histórico; no crean cuentas
 ni cargan datos operativos automáticamente.
@@ -224,13 +226,35 @@ sucursal del usuario revocan sus sesiones. Desactivar/reactivar una sucursal tam
 | Registrar personal | Sí | No | No |
 | GET `/reportes/sucursales` | Todas las sedes | Solo su sede | No |
 
-Las pantallas de autenticación son mínimas y propias de Andrew; Brian conserva
-`base.html`, navegación y dashboard. Los POST requieren CSRF. `/auth/me` ofrece
+Las pantallas de autenticación heredan la plantilla compartida de Brian sin cambiar
+sus contratos. Los POST requieren CSRF. `/auth/me` ofrece
 los datos de la sesión actual para integración, sin hashes ni tokens.
 
 La base de desarrollo de Andrew contiene la cuenta demo autorizada. Las otras
 cuentas y contraseñas efímeras usadas en pruebas nunca se cargan allí. En una base
 nueva sin demo, `create-admin` continúa disponible para el alta inicial normal.
+
+## Inicio y reportes web
+
+Después de iniciar sesión, abrir `/` para acceder al dashboard. La portada enlaza
+solo pantallas HTML disponibles; identifica clientes, reservas, inventario, producción
+y ventas como pantallas pendientes, aunque sus APIs JSON ya existan.
+
+Los administradores pueden abrir `/reportes`. La interfaz ejecuta las cinco funciones
+definitivas instaladas por `sql/fase1/50_reportes.sql`; no usa el endpoint histórico
+`/reportes/sucursales` como fuente. Gerentes y meseros reciben 403 porque las funciones
+definitivas no admiten un filtro de sucursal que preserve su alcance de acceso.
+
+Filtros GET de `/reportes`:
+
+- `desde=AAAA-MM-DD`: inicio incluido para productos, visitas, reservas y sucursales.
+- `hasta=AAAA-MM-DD`: límite final excluido para esos cuatro reportes.
+- `mes=AAAA-MM`: mes de vencimientos para el reporte de inventario.
+
+Sin filtros se consulta el mes actual en `America/Guatemala`. Fechas inválidas o un
+intervalo vacío/invertido devuelven 400; una falla de PostgreSQL devuelve 503 y no
+se presenta como un conjunto sin resultados. Un resultado válido sin filas conserva
+200 y muestra su estado vacío.
 
 ## Auditoría y reporte
 
@@ -250,6 +274,7 @@ Ver [integración del 26](docs/integracion-26-octubre.md).
 
 ```bash
 python -m pytest
+python -m pytest tests/test_reportes_ui.py -q
 python -m mypy
 python -m ruff check .
 python -m ruff format --check .
