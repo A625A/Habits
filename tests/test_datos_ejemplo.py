@@ -4,6 +4,7 @@ from pathlib import Path
 import psycopg
 import pytest
 from psycopg import sql
+from psycopg.types.json import Jsonb
 
 SQL = Path(__file__).resolve().parents[1] / "sql" / "datos_ejemplo" / "datos.sql"
 
@@ -290,3 +291,280 @@ def test_consultas_de_revision_muestran_los_datos_sin_cambiarlos(db, ejemplo):
         ).fetchall()
         == antes
     )
+
+
+@pytest.fixture
+def operaciones(db, ejemplo):
+    ejemplo["usuario"] = db.execute(
+        "SELECT usuario_id FROM usuarios WHERE email='carga@example.test'"
+    ).fetchone()[0]
+    ejemplo["productos"] = dict(db.execute("SELECT codigo,producto_id FROM productos").fetchall())
+    return ejemplo
+
+
+def producir_ejemplo(db, operaciones, cantidad=2, dias=2):
+    return db.execute(
+        """CALL registrar_produccion(%s,%s,%s,%s,
+        (CURRENT_TIMESTAMP AT TIME ZONE 'America/Guatemala')::date+%s,NULL)""",
+        (
+            operaciones["sucursal"],
+            operaciones["productos"]["HAB-09"],
+            operaciones["usuario"],
+            cantidad,
+            dias,
+        ),
+    ).fetchone()[0]
+
+
+def vender_ejemplo(db, operaciones, lineas):
+    return db.execute(
+        "CALL registrar_venta(%s,%s,'llevar',NULL,NULL,%s,NULL)",
+        (operaciones["sucursal"], operaciones["usuario"], Jsonb(lineas)),
+    ).fetchone()[0]
+
+
+def estado_operaciones(db):
+    # Comparar también la bitácora permite detectar cambios que quedaron a medias.
+    return {
+        tabla: db.execute(
+            sql.SQL("SELECT * FROM {} ORDER BY 1").format(sql.Identifier(tabla))
+        ).fetchall()
+        for tabla in ("lotes_ingrediente", "producciones", "ventas", "detalle_ventas", "auditoria")
+    }
+
+
+def test_produccion_consume_receta_y_primero_lotes_que_vencen_antes(db, operaciones):
+    antes = dict(db.execute("SELECT lote_id,cantidad_disponible FROM lotes_ingrediente").fetchall())
+    produccion = producir_ejemplo(db, operaciones, cantidad=41)
+    # Cada pan usa 50 g de harina: 41 panes consumen 2000 g del primer lote y 50 del segundo.
+    assert db.execute(
+        """SELECT l.cantidad_disponible FROM lotes_ingrediente l
+        JOIN inventario_ingrediente i USING(inventario_id) JOIN ingredientes g USING(ingrediente_id)
+        WHERE i.sucursal_id=%s AND g.nombre='Harina' ORDER BY l.fecha_vencimiento,l.lote_id""",
+        (operaciones["sucursal"],),
+    ).fetchall() == [(0,), (7950,)]
+    consumos = dict(
+        db.execute(
+            "SELECT ingrediente_id,cantidad*41 FROM receta_ingrediente WHERE producto_id=%s",
+            (operaciones["productos"]["HAB-09"],),
+        ).fetchall()
+    )
+    for ingrediente, cantidad in consumos.items():
+        lotes = db.execute(
+            """SELECT l.lote_id,l.cantidad_disponible FROM lotes_ingrediente l
+            JOIN inventario_ingrediente i USING(inventario_id)
+            WHERE i.sucursal_id=%s AND i.ingrediente_id=%s""",
+            (operaciones["sucursal"], ingrediente),
+        ).fetchall()
+        assert sum(antes[lote] - saldo for lote, saldo in lotes) == cantidad
+    assert db.execute(
+        "SELECT cantidad_producida,cantidad_disponible FROM producciones WHERE produccion_id=%s",
+        (produccion,),
+    ).fetchone() == (41, 41)
+    assert (
+        db.execute(
+            "SELECT sum(cantidad_disponible) FROM v_stock_ingredientes WHERE sucursal_id=%s",
+            (operaciones["otra_sucursal"],),
+        ).fetchone()[0]
+        == 190100
+    )
+
+
+def test_venta_de_bebida_descontada_por_receta_sin_produccion(db, operaciones):
+    producto = operaciones["productos"]["HAB-01"]
+    antes = dict(
+        db.execute(
+            "SELECT ingrediente_id,cantidad_disponible FROM v_stock_ingredientes WHERE sucursal_id=%s",
+            (operaciones["sucursal"],),
+        ).fetchall()
+    )
+    venta = vender_ejemplo(db, operaciones, [{"producto_id": producto, "cantidad": 2}])
+    for ingrediente, cantidad in db.execute(
+        "SELECT ingrediente_id,cantidad*2 FROM receta_ingrediente WHERE producto_id=%s", (producto,)
+    ).fetchall():
+        saldo = db.execute(
+            "SELECT cantidad_disponible FROM v_stock_ingredientes WHERE sucursal_id=%s AND ingrediente_id=%s",
+            (operaciones["sucursal"], ingrediente),
+        ).fetchone()[0]
+        assert antes[ingrediente] - saldo == cantidad
+    assert db.execute("SELECT count(*) FROM producciones").fetchone()[0] == 0
+    assert (
+        db.execute("SELECT total FROM v_totales_ventas WHERE venta_id=%s", (venta,)).fetchone()[0]
+        == 52
+    )
+
+
+def test_venta_de_pan_no_repite_consumo_y_conserva_precio_cobrado(db, operaciones):
+    producir_ejemplo(db, operaciones)
+    antes = db.execute(
+        "SELECT lote_id,cantidad_disponible FROM lotes_ingrediente ORDER BY 1"
+    ).fetchall()
+    producto = operaciones["productos"]["HAB-09"]
+    venta = vender_ejemplo(db, operaciones, [{"producto_id": producto, "cantidad": 1}])
+    db.execute("UPDATE productos SET precio=99 WHERE producto_id=%s", (producto,))
+    assert (
+        db.execute(
+            "SELECT lote_id,cantidad_disponible FROM lotes_ingrediente ORDER BY 1"
+        ).fetchall()
+        == antes
+    )
+    assert db.execute("SELECT cantidad_disponible FROM producciones").fetchone()[0] == 1
+    assert (
+        db.execute("SELECT total FROM v_totales_ventas WHERE venta_id=%s", (venta,)).fetchone()[0]
+        == 16
+    )
+
+
+def test_falta_de_ingrediente_revierte_produccion_y_auditoria(db, operaciones):
+    # Huevo se recorre después de harina: el error ocurre tras comenzar el descuento.
+    db.execute(
+        """UPDATE lotes_ingrediente SET cantidad_disponible=0 WHERE inventario_id IN
+        (SELECT inventario_id FROM inventario_ingrediente JOIN ingredientes USING(ingrediente_id)
+        WHERE sucursal_id=%s AND nombre='Huevo')""",
+        (operaciones["sucursal"],),
+    )
+    antes = estado_operaciones(db)
+    with pytest.raises(psycopg.errors.RaiseException, match="Ingrediente sin existencias"):
+        producir_ejemplo(db, operaciones)
+    assert estado_operaciones(db) == antes
+
+
+def test_falla_en_segundo_producto_revierte_venta_completa(db, operaciones):
+    antes = estado_operaciones(db)
+    with pytest.raises(psycopg.errors.RaiseException, match="Producto sin unidades"):
+        vender_ejemplo(
+            db,
+            operaciones,
+            [
+                {"producto_id": operaciones["productos"]["HAB-01"], "cantidad": 1},
+                {"producto_id": operaciones["productos"]["HAB-09"], "cantidad": 1},
+            ],
+        )
+    # Tampoco queda el descuento de la bebida, su detalle ni su evento de auditoría.
+    assert estado_operaciones(db) == antes
+
+
+def test_rollback_explicito_deshace_produccion_venta_y_bitacora(db, operaciones):
+    antes = estado_operaciones(db)
+    db.execute("BEGIN")
+    try:
+        producir_ejemplo(db, operaciones)
+        vender_ejemplo(
+            db, operaciones, [{"producto_id": operaciones["productos"]["HAB-09"], "cantidad": 1}]
+        )
+        assert db.execute("SELECT count(*) FROM ventas").fetchone()[0] == 1
+    finally:
+        db.execute("ROLLBACK")
+    assert estado_operaciones(db) == antes
+
+
+def test_commit_conserva_operaciones_y_actor_de_auditoria(db, operaciones, database_url):
+    with db.transaction():
+        producir_ejemplo(db, operaciones)
+        venta = vender_ejemplo(
+            db, operaciones, [{"producto_id": operaciones["productos"]["HAB-09"], "cantidad": 1}]
+        )
+    # Otra conexión comprueba que los cambios realmente quedaron guardados.
+    with psycopg.connect(database_url) as otra:
+        assert (
+            otra.execute(
+                "SELECT total FROM v_totales_ventas WHERE venta_id=%s", (venta,)
+            ).fetchone()[0]
+            == 16
+        )
+        assert (
+            otra.execute(
+                "SELECT usuario_id FROM auditoria WHERE tabla='ventas' AND registro_id=%s",
+                (str(venta),),
+            ).fetchone()[0]
+            == operaciones["usuario"]
+        )
+
+
+def test_trigger_impide_confirmar_venta_sin_detalles(db, operaciones):
+    antes = estado_operaciones(db)
+    with (
+        pytest.raises(psycopg.errors.RaiseException, match="La venta debe tener detalles"),
+        db.transaction(),
+    ):
+        db.execute(
+            "INSERT INTO ventas(sucursal_id,usuario_id,tipo) VALUES (%s,%s,'llevar')",
+            (operaciones["sucursal"], operaciones["usuario"]),
+        )
+    assert estado_operaciones(db) == antes
+
+
+def test_venta_elige_pan_que_vence_antes_aunque_se_produjo_despues(db, operaciones):
+    posterior = producir_ejemplo(db, operaciones, cantidad=2, dias=5)
+    cercano = producir_ejemplo(db, operaciones, cantidad=1, dias=1)
+    vender_ejemplo(
+        db, operaciones, [{"producto_id": operaciones["productos"]["HAB-09"], "cantidad": 2}]
+    )
+    assert dict(
+        db.execute("SELECT produccion_id,cantidad_disponible FROM producciones").fetchall()
+    ) == {posterior: 1, cercano: 0}
+
+
+def test_ingrediente_vencido_no_permite_vender_bebida(db, operaciones):
+    inventario = db.execute(
+        """SELECT inventario_id FROM inventario_ingrediente JOIN ingredientes USING(ingrediente_id)
+        WHERE sucursal_id=%s AND nombre='Café'""",
+        (operaciones["sucursal"],),
+    ).fetchone()[0]
+    db.execute(
+        "UPDATE lotes_ingrediente SET cantidad_disponible=0 WHERE inventario_id=%s", (inventario,)
+    )
+    db.execute(
+        """INSERT INTO lotes_ingrediente(inventario_id,usuario_id,fecha_vencimiento,
+        cantidad_inicial,cantidad_disponible) VALUES (%s,%s,
+        (CURRENT_TIMESTAMP AT TIME ZONE 'America/Guatemala')::date-1,1000,1000)""",
+        (inventario, operaciones["usuario"]),
+    )
+    antes = estado_operaciones(db)
+    with pytest.raises(psycopg.errors.RaiseException, match="Ingrediente sin existencias"):
+        vender_ejemplo(
+            db, operaciones, [{"producto_id": operaciones["productos"]["HAB-01"], "cantidad": 1}]
+        )
+    assert estado_operaciones(db) == antes
+
+
+def test_ensayo_manual_revierte_produccion_venta_e_inventario(db, operaciones, database_url):
+    import os
+    import subprocess
+
+    from psycopg.conninfo import conninfo_to_dict
+
+    entorno = os.environ.copy()
+    conexion = conninfo_to_dict(database_url)
+    for clave, variable in {
+        "host": "PGHOST",
+        "port": "PGPORT",
+        "user": "PGUSER",
+        "password": "PGPASSWORD",
+        "dbname": "PGDATABASE",
+    }.items():
+        if clave in conexion:
+            entorno[variable] = conexion[clave]
+    esquema = db.execute("SELECT current_schema()").fetchone()[0]
+    entorno["PGOPTIONS"] = f"-csearch_path={esquema},public"
+    antes = estado_operaciones(db)
+    resultado = subprocess.run(
+        [
+            "psql",
+            "-X",
+            "-A",
+            "-t",
+            "-v",
+            f"usuario_id={operaciones['usuario']}",
+            "-f",
+            str(SQL.with_name("ensayar_produccion_venta.psql")),
+        ],
+        env=entorno,
+        capture_output=True,
+        text=True,
+        timeout=20,
+        check=False,
+    )
+    assert resultado.returncode == 0, resultado.stderr
+    assert "t|t|t|t" in resultado.stdout
+    assert estado_operaciones(db) == antes

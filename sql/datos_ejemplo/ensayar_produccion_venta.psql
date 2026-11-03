@@ -1,0 +1,56 @@
+\set ON_ERROR_STOP on
+-- Ensayo para una base de práctica: al final se deshacen todos los cambios.
+SELECT right(current_database(),5)='_test' AS es_prueba \gset
+\if :es_prueba
+\else
+DO $$ BEGIN RAISE EXCEPTION 'Usar una base de pruebas terminada en _test'; END; $$;
+\endif
+\if :{?usuario_id}
+\else
+DO $$ BEGIN RAISE EXCEPTION 'Indicar el administrador con -v usuario_id=SU_ID'; END; $$;
+\endif
+
+BEGIN;
+SELECT set_config('habits.usuario_carga', :'usuario_id', true);
+-- Guardar cantidades para compararlas después de ROLLBACK.
+SELECT (SELECT count(*) FROM ventas) AS ventas_antes,
+       (SELECT count(*) FROM producciones) AS producciones_antes,
+       (SELECT count(*) FROM auditoria) AS eventos_antes,
+       (SELECT coalesce(sum(cantidad_disponible),0) FROM lotes_ingrediente) AS saldo_antes
+\gset
+
+DO $$
+DECLARE
+    sede BIGINT;
+    pan BIGINT;
+    bebida BIGINT;
+    usuario BIGINT := current_setting('habits.usuario_carga')::BIGINT;
+    produccion BIGINT;
+    venta BIGINT;
+BEGIN
+    SELECT sucursal_id INTO sede FROM sucursales WHERE codigo='DEMO-01' AND activa;
+    SELECT producto_id INTO pan FROM productos WHERE codigo='HAB-09' AND activo;
+    SELECT producto_id INTO bebida FROM productos WHERE codigo='HAB-01' AND activo;
+    IF sede IS NULL OR pan IS NULL OR bebida IS NULL THEN
+        RAISE EXCEPTION 'Se necesita el catálogo inicial y la carga de ejemplo';
+    END IF;
+    -- Preparar dos panes y vender uno junto con una bebida.
+    CALL registrar_produccion(sede,pan,usuario,2,
+        (CURRENT_TIMESTAMP AT TIME ZONE 'America/Guatemala')::date+2,produccion);
+    CALL registrar_venta(sede,usuario,'llevar',NULL,NULL,
+        jsonb_build_array(jsonb_build_object('producto_id',pan,'cantidad',1),
+                          jsonb_build_object('producto_id',bebida,'cantidad',1)),venta);
+    RAISE NOTICE 'Producción temporal: %. Venta temporal: %.',produccion,venta;
+    RAISE NOTICE 'Importe de la venta: %.',(SELECT total FROM v_totales_ventas WHERE venta_id=venta);
+END;
+$$;
+-- Comprobar ahora las reglas que normalmente se revisan al guardar.
+SET CONSTRAINTS ALL IMMEDIATE;
+ROLLBACK;
+
+-- Las cuatro columnas deben mostrar true: no quedaron operaciones del ensayo.
+SELECT (SELECT count(*) FROM ventas)=:'ventas_antes'::BIGINT AS ventas_restauradas,
+       (SELECT count(*) FROM producciones)=:'producciones_antes'::BIGINT AS producciones_restauradas,
+       (SELECT count(*) FROM auditoria)=:'eventos_antes'::BIGINT AS bitacora_restaurada,
+       (SELECT coalesce(sum(cantidad_disponible),0) FROM lotes_ingrediente)=:'saldo_antes'::NUMERIC
+           AS ingredientes_restaurados;

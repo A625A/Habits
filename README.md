@@ -175,6 +175,14 @@ capacidad, horarios, cancelación, referencias de sucursal y registros inactivos
 también vencimientos de hoy, siete y ocho días, límites del 15 % y saldos inválidos.
 Cada caso usa un esquema temporal separado y lo elimina al terminar.
 
+Las mismas pruebas verifican producción, venta de bebidas y panes, consumo por
+vencimiento, precios históricos y operaciones fallidas que deben deshacerse
+completas, incluyendo su bitácora. También comparan `COMMIT` y `ROLLBACK`.
+La [explicación de procedimientos, triggers y transacciones](docs/sql-aplicado-fase-2.md#ejemplos-con-el-menú-y-los-datos-de-práctica)
+incluye ejemplos del menú y cómo ejecutar `sql/datos_ejemplo/ensayar_produccion_venta.psql`
+en una base de pruebas. Ese ensayo produce y vende temporalmente, y termina con
+`ROLLBACK` para conservar las existencias anteriores.
+
 ### Acceso rápido para la demo local
 
 Andrew autorizó una cuenta de demostración: **usuario `admin`, contraseña `123`**.

@@ -145,3 +145,92 @@ la transacción; el ensayo nunca cambia ROLLBACK por COMMIT automáticamente.
 Los ingredientes, cantidades, precios y mesas de los tests automatizados son
 fixtures aisladas. Estos scripts de presentación no cargan supuestos inventados
 ni requieren sembrar datos ficticios en la base de operación.
+
+## Ejemplos con el menú y los datos de práctica
+
+Para comprobar estas reglas con las recetas de `sql/datos_ejemplo/datos.sql`,
+ejecutar `python -m pytest tests/test_datos_ejemplo.py -q`. Las pruebas preparan
+sus propios datos en esquemas separados; no necesitan cargar ejemplos en la base
+de uso diario. Las cantidades siguientes corresponden al catálogo ficticio sin
+modificaciones; no representan recetas comerciales.
+
+### Qué hace cada procedimiento
+
+| Objeto | Explicación para la presentación |
+|---|---|
+| `registrar_produccion` | Revisa al empleado, consume los ingredientes de la receta y registra las unidades de pan o postre preparadas. |
+| `registrar_venta` | Guarda la compra y sus detalles; descuenta ingredientes si es bebida o unidades preparadas si es pan o postre. Conserva el precio cobrado. |
+| `registrar_llegada` | Crea la visita y marca la reserva como completada dentro de la misma operación. |
+| `cancelar_reserva` | Libera el horario al cancelar la reserva, conservando el registro para consultar su historia. |
+| `registrar_recepcion` | Agrega un lote de ingredientes con cantidad inicial y disponible iguales. Requiere la ampliación SQL de Fase 2. |
+
+`consumir_receta` es una función de apoyo que usan producción y venta; no es un
+procedimiento adicional que deba ejecutar el empleado. Multiplica cada cantidad
+de la receta por las unidades pedidas. Busca lotes de la sucursal que todavía
+sirvan y toma primero los que vencen antes. Si no alcanza un ingrediente, informa
+el error para deshacer la operación completa.
+
+Por ejemplo, cada pan de banano de práctica usa 50 g de harina. Preparar 41 panes
+consume 2050 g: 2000 del lote que vence primero y 50 del siguiente. También consume
+banano, azúcar y huevos. Se crean 41 unidades terminadas. Cuando se vende una,
+quedan 40 y no se vuelve a descontar harina. En cambio, vender dos lattes consume
+directamente dos veces su receta, sin crear una producción.
+
+### Qué se ejecuta automáticamente
+
+Un trigger es una comprobación o acción que la base ejecuta al cambiar una tabla.
+El empleado llama al procedimiento; no necesita llamar por separado a los triggers.
+
+| Trigger o grupo | Qué protege |
+|---|---|
+| `validar_reserva` | Rechaza grupos mayores que la mesa, datos inactivos y cambios de estado inválidos. Los cruces de horario los impide la restricción de exclusión, no este trigger. |
+| `validar_produccion` | Permite producir panadería o postres activos y revisa al operador. |
+| `validar_venta` | Revisa al operador y la correspondencia de la venta con su atención y mesa. |
+| `venta_con_detalles` | Al confirmar, impide que una venta quede guardada sin productos. |
+| `comprobar_llegada_reserva` y `comprobar_llegada_visita` | Al confirmar, exigen que la reserva completada y su visita correspondan. |
+| `conservar_lote`, `conservar_produccion`, `conservar_venta`, `conservar_detalle` | Protegen los datos históricos. Los saldos de lotes y producciones pueden disminuir; sus cantidades iniciales no se reescriben. |
+| `auditar_*` | Registran los cambios en la bitácora usando `auditar_cambio`, dentro de la misma transacción. |
+
+La bitácora registra cambios guardados. Si la operación termina en `ROLLBACK`,
+también desaparecen sus eventos. No sirve como registro de intentos fallidos.
+En estas operaciones `validar_operador` establece el ID del empleado que luego
+usa la auditoría. La aplicación debe obtener ese ID de la sesión autenticada.
+
+### Qué significan BEGIN, COMMIT y ROLLBACK aquí
+
+`BEGIN` abre el grupo de cambios. `COMMIT` los guarda juntos y comprueba las reglas
+pendientes. `ROLLBACK` los deshace. Los procedimientos de Habits no guardan por su
+cuenta: quien los llama controla la transacción. Así se puede producir y vender
+dentro de una sola transacción cuando la demostración lo necesita.
+
+Las pruebas comprueban estos casos:
+
+- Falta huevo al producir pan: se recuperan también los ingredientes descontados antes del error y no queda producción ni evento de auditoría.
+- Una venta contiene una bebida y un pan sin unidades preparadas: se deshace también el descuento de la bebida y no queda ningún detalle de esa compra.
+- Se produce y vende correctamente, pero se ejecuta `ROLLBACK`: lotes, producciones, ventas, detalles y bitácora quedan como antes.
+- Se confirma con `COMMIT`: otra conexión puede consultar la venta y el empleado registrado por la auditoría.
+- Se intenta guardar una venta sin detalles: la comprobación diferida impide confirmar y se revierte la operación.
+
+Esto demuestra atomicidad al evitar cambios a medias y consistencia al aplicar
+las reglas. Los bloqueos que aparecen como `FOR UPDATE` protegen las filas que
+se están usando; estas pruebas de ejemplo no miden concurrencia. Consultar desde
+otra conexión verifica que se confirmó el cambio, pero no simula una falla de disco.
+Las secuencias de IDs pueden avanzar aunque se deshaga una operación: no se debe
+confundir un salto en los números con una venta perdida.
+
+### Ensayo manual de producción y venta
+
+En una base exclusiva de práctica terminada en `_test`, con el esquema completo,
+los datos de ejemplo y un administrador activo, ejecutar como propietario:
+
+```bash
+psql -X -h 127.0.0.1 -p 55432 -U habits_app -d habits_test -W -v usuario_id=SU_ID -f sql/datos_ejemplo/ensayar_produccion_venta.psql
+```
+
+Adaptar conexión e ID. El ensayo usa `DEMO-01`, `HAB-09` y `HAB-01`: prepara dos
+panes y vende un pan junto con un latte. Con precios iniciales muestra un total
+temporal de Q42. Después ejecuta `ROLLBACK`; las cuatro columnas de comprobación
+deben mostrar `true`. No necesita que las tablas de operaciones estén vacías.
+Si faltan ingredientes o datos, se detiene sin confirmar; no cambia automáticamente
+a `COMMIT`. No ejecutar a la vez que otras operaciones si se van a comparar los
+conteos finales, porque otro usuario podría cambiar esos datos durante el ensayo.
