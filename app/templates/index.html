@@ -27,7 +27,7 @@
           </div>
         </article>
       </div>
-      {% if g.user.rol in ['administrador', 'gerente'] %}
+      {% if g.user.rol == 'administrador' %}
         <div class="col-md-6 col-xl-4">
           <article class="card module-card h-100 featured-card">
             <div class="card-body d-flex flex-column">
@@ -55,27 +55,12 @@
   </section>
 
   <section class="mt-5" aria-labelledby="modulos-operativos">
-    <div class="section-heading">
-      <div>
-        <p class="eyebrow mb-1">Próxima etapa</p>
-        <h2 id="modulos-operativos" class="h3 mb-0">Módulos operativos</h2>
-      </div>
-    </div>
-    <p class="text-secondary mb-3">El backend de estos módulos ya ofrece datos, pero sus pantallas de operación todavía están pendientes.</p>
+    <h2 id="modulos-operativos" class="h3 mb-4">Operación diaria</h2>
     <div class="row g-3">
-      {% for module in [
-        ('Clientes e historial', 'Chris'),
-        ('Reservas y mesas', 'Chris'),
-        ('Inventario y producción', 'Rodrigo'),
-        ('Ventas', 'Rodrigo')
-      ] %}
-        <div class="col-sm-6 col-xl-3">
-          <div class="pending-module h-100">
-            <span class="status-pill status-pending">Pantalla pendiente</span>
-            <h3 class="h5 mt-3">{{ module[0] }}</h3>
-            <p class="small text-secondary mb-0">Responsable funcional: {{ module[1] }}.</p>
-          </div>
-        </div>
+      {% for clave, nombre in [('clientes','Clientes e historial'),('reservas','Reservas'),('visitas','Visitas'),('mesas','Mesas'),('catalogo','Productos y recetas'),('ingredientes','Ingredientes'),('inventario','Inventario y recepciones'),('producciones','Producción'),('ventas','Ventas')] %}
+      {% if g.user.rol != 'mesero' or clave not in ['inventario','producciones'] %}
+      <div class="col-sm-6 col-xl-4"><a class="card module-card h-100 text-decoration-none" href="{{ url_for('inicio.operacion', modulo=clave) }}"><div class="card-body"><h3 class="h5">{{ nombre }}</h3><span class="text-secondary">Abrir módulo →</span></div></a></div>
+      {% endif %}
       {% endfor %}
     </div>
   </section>

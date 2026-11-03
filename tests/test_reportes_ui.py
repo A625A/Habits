@@ -129,7 +129,8 @@ def _seed_report_rows(database_url):
 
 def test_inicio_exige_sesion_y_reportes_solo_permite_administrador(reports_app, admin_password):
     anonymous = reports_app.test_client()
-    assert anonymous.get("/").status_code == 401
+    assert anonymous.get("/").status_code == 302
+    assert anonymous.get("/").headers["Location"].endswith("/auth/login")
     assert anonymous.get("/reportes").status_code == 401
 
     admin = reports_app.test_client()
@@ -226,3 +227,46 @@ def test_falla_de_base_devuelve_estado_distinto_de_resultado_vacio(admin_app, ad
     login(client, admin_password)
     response = client.get("/reportes?desde=2030-01-01&hasta=2030-02-01&mes=2030-01")
     assert response.status_code == 503
+
+
+@pytest.mark.parametrize(
+    "modulo",
+    [
+        "clientes",
+        "reservas",
+        "visitas",
+        "mesas",
+        "catalogo",
+        "ingredientes",
+        "inventario",
+        "producciones",
+        "ventas",
+    ],
+)
+def test_pantallas_operativas_requieren_sesion_y_cargan_formulario(
+    reports_app, admin_password, modulo
+):
+    client = reports_app.test_client()
+    assert client.get(f"/operacion/{modulo}").status_code == 401
+    login(client, admin_password)
+    response = client.get(f"/operacion/{modulo}")
+    assert response.status_code == 200
+    assert f'data-module="{modulo}"' in response.text
+    assert 'data-csrf="' in response.text
+    assert "js/operaciones.js" in response.text
+    assert 'id="operation-form"' in response.text
+
+
+def test_mesero_solo_ve_modulos_permitidos(reports_app, admin_password):
+    admin = reports_app.test_client()
+    login(admin, admin_password)
+    password = secrets.token_urlsafe(24)
+    register(admin, password, "mesero", "mesero@example.test")
+    client = reports_app.test_client()
+    login(client, password, "mesero@example.test")
+    assert client.get("/operacion/inventario").status_code == 403
+    assert client.get("/operacion/producciones").status_code == 403
+    assert client.get("/operacion/ventas").status_code == 200
+    assert "/operacion/inventario" not in client.get("/").text
+    assert "/operacion/producciones" not in client.get("/").text
+    assert client.get("/operacion/desconocido").status_code == 404

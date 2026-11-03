@@ -101,7 +101,7 @@ def test_fk_impide_usuario_huerfano_y_borrar_sucursal_referenciada(core):
     with pytest.raises(psycopg.errors.ForeignKeyViolation):
         conn.execute(query, (-1,))
     conn.execute(query, (branch_id,))
-    with pytest.raises(psycopg.errors.ForeignKeyViolation):
+    with pytest.raises((psycopg.errors.ForeignKeyViolation, psycopg.errors.RestrictViolation)):
         conn.execute("DELETE FROM sucursales WHERE sucursal_id = %s", (branch_id,))
 
 

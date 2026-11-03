@@ -26,7 +26,8 @@
           <div class="collapse navbar-collapse" id="navHabits">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
               <li class="nav-item"><a class="nav-link{% if request.endpoint == 'inicio.index' %} active{% endif %}" href="{{ url_for('inicio.index') }}">Inicio</a></li>
-              {% if g.user.rol in ['administrador', 'gerente'] %}
+              <li class="nav-item"><a class="nav-link" href="{{ url_for('inicio.operacion', modulo='ventas') }}">Operación</a></li>
+              {% if g.user.rol == 'administrador' %}
                 <li class="nav-item"><a class="nav-link{% if request.blueprint == 'reportes' %} active{% endif %}" href="{{ url_for('reportes.index') }}">Reportes</a></li>
               {% endif %}
               {% if g.user.rol == 'administrador' %}

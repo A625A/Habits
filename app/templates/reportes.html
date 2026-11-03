@@ -52,6 +52,13 @@
         <h2 id="titulo-productos" class="h3">Top 10 de productos más vendidos</h2>
         <p class="text-secondary">Unidades e importe de ventas registradas entre {{ filters.desde }} y {{ filters.hasta }}.</p>
         {% if reports.productos %}
+          {% set mayor_producto = reports.productos|map(attribute='unidades')|max %}
+          <figure class="mb-4" aria-label="Unidades vendidas por producto">
+            <figcaption class="fw-semibold mb-2">Unidades vendidas</figcaption>
+            {% for row in reports.productos %}
+            <div class="report-bar-row"><span>{{ row.nombre }}</span><meter min="0" max="{{ mayor_producto or 1 }}" value="{{ row.unidades }}" aria-label="{{ row.nombre }}: {{ row.unidades }} unidades">{{ row.unidades }}</meter><strong>{{ row.unidades }}</strong></div>
+            {% endfor %}
+          </figure>
           <div class="table-responsive">
             <table class="table table-striped table-hover align-middle">
               <thead><tr><th scope="col">Producto</th><th scope="col" class="text-end">Unidades</th><th scope="col" class="text-end">Importe</th></tr></thead>
@@ -155,6 +162,15 @@
         <h2 id="titulo-sucursales" class="h3">Comparación de sucursales</h2>
         <p class="text-secondary">Reservas, ventas e importe agregados por separado para evitar duplicaciones.</p>
         {% if reports.sucursales %}
+          {% set mayor_sucursal = ([1] + reports.sucursales|map(attribute='reservas')|list + reports.sucursales|map(attribute='ventas')|list)|max %}
+          <figure class="mb-4" aria-label="Reservas y ventas por sucursal">
+            <figcaption class="fw-semibold mb-2">Cantidad de reservas y ventas</figcaption>
+            {% for row in reports.sucursales %}
+            <p class="mb-1 mt-3">{{ row.nombre }}</p>
+            <div class="report-bar-row"><span>Reservas</span><meter min="0" max="{{ mayor_sucursal }}" value="{{ row.reservas }}" aria-label="{{ row.nombre }}: {{ row.reservas }} reservas">{{ row.reservas }}</meter><strong>{{ row.reservas }}</strong></div>
+            <div class="report-bar-row"><span>Ventas</span><meter class="sales-meter" min="0" max="{{ mayor_sucursal }}" value="{{ row.ventas }}" aria-label="{{ row.nombre }}: {{ row.ventas }} ventas">{{ row.ventas }}</meter><strong>{{ row.ventas }}</strong></div>
+            {% endfor %}
+          </figure>
           <div class="table-responsive">
             <table class="table table-striped table-hover align-middle">
               <thead><tr><th scope="col">Sucursal</th><th scope="col" class="text-end">Confirmadas</th><th scope="col" class="text-end">Completadas</th><th scope="col" class="text-end">Reservas</th><th scope="col" class="text-end">Ventas</th><th scope="col" class="text-end">Importe</th></tr></thead>

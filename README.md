@@ -1,7 +1,7 @@
 # Habits
 Proyecto 2 base de Datos 1, Cafeteria y postreria "Habits"
 
-**Fases 1 y 2 integradas en `main`: base PostgreSQL y backend funcional.**
+**Base PostgreSQL, backend y pantallas operativas integradas en `main`.**
 Se conservan las 18 tablas, restricciones, procedimientos, triggers de auditoría,
 cinco reportes SQL, autenticación y endpoints JSON de clientes, reservas/visitas,
 catálogo/recetas, inventario, producción y ventas.
@@ -15,12 +15,13 @@ Ver [integración, contribuciones y pendientes](docs/integracion-main-fase-2.md)
 - [Backend: instalación, permisos, endpoints y ejemplos](docs/fase-2-backend.md).
 - [SQL avanzado para la presentación](docs/sql-aplicado-fase-2.md).
 
-La plantilla Bootstrap, el inicio y la presentación de los cinco reportes ya están
-implementados. Las pantallas operativas de clientes, reservas, inventario, producción
-y ventas siguen pendientes. Railway está preparado, pero no se ha creado ni desplegado
-ningún servicio público. Para las 18 tablas usar `sql/fase1/inicializar.sql` y luego
-`db-backend-upgrade`; los comandos core antiguos conservan únicamente su alcance
-histórico.
+Las pantallas incluyen inicio, clientes e historial, reservas, visitas, mesas,
+productos y recetas, ingredientes, inventario, producción, ventas y reportes.
+Se aprovechan el inicio, autenticación visual y reportes de la rama
+`feat/brian-ui-docs`, y se conectan los módulos operativos a las APIs existentes.
+La configuración de Railway de Brian se conserva; el despliegue sigue a cargo
+del responsable. Los comandos Flask antiguos conservan su alcance original;
+para las 18 tablas usar `sql/fase1/inicializar.sql` y luego `db-backend-upgrade`.
 Las secciones de equipos/demo documentan trabajo histórico; no crean cuentas
 ni cargan datos operativos automáticamente.
 
@@ -127,8 +128,9 @@ curl --fail http://127.0.0.1:5000/health/db
 ```
 
 `/health` confirma que Flask responde; `/health/db` ejecuta `SELECT 1` y devuelve
-200 o 503. Confirma conectividad, no presencia del esquema completo. El dashboard
-está en `/`; las pantallas operativas marcadas como pendientes todavía no existen.
+200 o 503. Confirma conectividad, no presencia del esquema. `/` abre el login
+si no hay sesión; después se puede abrir el inicio desde Mi cuenta.
+Nunca se crea la base al importar Flask o iniciar un worker.
 
 También se puede aplicar cada SQL con `psql -v ON_ERROR_STOP=1 --single-transaction -f`
 usando una conexión configurada por el operador; no aplicar todos los SQL a ciegas.
@@ -250,8 +252,8 @@ nueva sin demo, `create-admin` continúa disponible para el alta inicial normal.
 ## Inicio y reportes web
 
 Después de iniciar sesión, abrir `/` para acceder al dashboard. La portada enlaza
-solo pantallas HTML disponibles; identifica clientes, reservas, inventario, producción
-y ventas como pantallas pendientes, aunque sus APIs JSON ya existan.
+las pantallas de clientes, reservas, visitas, mesas, catálogo, ingredientes,
+inventario, producción y ventas según los permisos de cada persona.
 
 Los administradores pueden abrir `/reportes`. La interfaz ejecuta las cinco funciones
 definitivas instaladas por `sql/fase1/50_reportes.sql`; no usa el endpoint histórico
@@ -283,7 +285,37 @@ devuelven NULL y el endpoint informa `pendiente_modulos`: no se inventan ceros.
 requiere las vistas contratadas de Rodrigo/Chris y **no se ejecuta automáticamente**.
 Ver [integración del 26](docs/integracion-26-octubre.md).
 
-## Pruebas y calidad
+## Usar las pantallas
+
+Con el esquema completo, `db-backend-upgrade` aplicado y el administrador creado,
+iniciar Flask como se indica arriba y abrir `/`. Tras el login, Mi cuenta ofrece
+el acceso al inicio. La navegación Operación reúne las pantallas conectadas:
+
+- Clientes: alta, edición, historial, preferencias y observaciones.
+- Reservas y visitas: creación, confirmación de pendientes, cancelación y llegada;
+  para atender una reserva usar su llegada, sin duplicar la visita.
+- Mesas: consulta y configuración de capacidad por sucursal.
+- Productos e ingredientes: consulta, edición y receta completa; la edición del
+  catálogo compartido corresponde al administrador.
+- Inventario: referencias, recepción de lotes, existencias, terminados y alertas.
+- Producción: preparación de panes y postres mediante el procedimiento existente.
+- Ventas: una o varias líneas, compra anónima o asociada a una visita, y detalle
+  con los precios cobrados. El importe se calcula en el servidor.
+
+Los listados tienen paginación y los selectores cargan todas sus páginas. El horario
+de reservas se interpreta en Guatemala. Las pantallas envían la cookie de sesión
+y el token CSRF; la API comprueba nuevamente permisos, sucursal y reglas de negocio.
+El mesero consulta mesas y catálogo y opera clientes, reservas, visitas y ventas;
+gerente y administrador también operan inventario y producción. Los cinco reportes
+globales con dos gráficos de barras corresponden al administrador.
+
+Para Railway se conservan `wsgi.py`, Gunicorn y las variables existentes del README.
+Las pantallas no requieren otro servicio ni cambios de esquema. No se cargan datos,
+se crean cuentas ni se ejecutan migraciones al iniciar el servidor. La conexión,
+instalación del esquema, HTTPS y demás ajustes del despliegue siguen a cargo de
+quien prepare Railway. Este cambio no publica ningún servicio en Railway.
+
+## Pruebas y calidad de la aplicación
 
 ```bash
 python -m pytest
