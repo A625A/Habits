@@ -1,0 +1,13 @@
+\set ON_ERROR_STOP on
+-- Indicar un administrador existente con -v usuario_id=SU_ID.
+\if :{?usuario_id}
+BEGIN;
+SELECT pg_advisory_xact_lock(3088, 3);
+SELECT set_config('habits.usuario_carga', :'usuario_id', true);
+\ir datos.sql
+COMMIT;
+\else
+DO $$ BEGIN
+    RAISE EXCEPTION 'Falta usuario_id. Usar -v usuario_id=SU_ID al ejecutar cargar.psql';
+END; $$;
+\endif

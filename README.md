@@ -128,6 +128,33 @@ usando una conexión configurada por el operador; no aplicar todos los SQL a cie
 
 ## Primer administrador, login y permisos
 
+### Carga opcional de datos de ejemplo
+
+Para una base local de práctica con el esquema completo de Fase 1, el catálogo
+inicial y un administrador activo ya creado, se puede ejecutar como propietario
+de la base (reemplazar `SU_ID` por el `usuario_id` de ese administrador):
+
+```bash
+psql -X -h 127.0.0.1 -p 55432 -U habits_app -d habits -W -v usuario_id=SU_ID -f sql/datos_ejemplo/cargar.psql
+```
+
+El ID se puede consultar con `SELECT usuario_id, nombre FROM usuarios WHERE
+rol='administrador' AND activo;`. Adaptar host, puerto y usuario a la instalación.
+La carga es manual y ficticia: agrega tres mesas por sucursal, veinte ingredientes,
+recetas de ejemplo para los doce productos y sus inventarios independientes.
+Las cantidades son para practicar, no fórmulas comerciales validadas.
+
+Cada inventario sin lotes recibe dos: uno vence en tres días y otro en treinta,
+contados desde la carga según la fecha de Guatemala. En una base nueva se crean
+cuarenta inventarios y ochenta lotes. Las recetas existentes se conservan completas;
+las mesas y referencias existentes tampoco se reemplazan. Si un ingrediente tiene
+otra unidad o está inactivo, se cancela toda la carga para revisarlo.
+
+Se puede repetir el comando: no duplica registros ni repone lotes consumidos o
+vencidos. Un inventario que ya tenga cualquier lote se conserva sin entradas nuevas.
+No crea cuentas, contraseñas, reservas, producciones ni ventas. La carga completa
+se guarda en una transacción; un error la deshace. No se ejecuta al iniciar Flask.
+
 ### Acceso rápido para la demo local
 
 Andrew autorizó una cuenta de demostración: **usuario `admin`, contraseña `123`**.
