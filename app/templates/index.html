@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Inicio · Habits{% endblock %}
+{% block content %}
+  <section class="hero-panel mb-4" aria-labelledby="titulo-inicio">
+    <div>
+      <p class="eyebrow mb-2">Panel principal</p>
+      <h1 id="titulo-inicio">Buen día, {{ g.user.nombre }}</h1>
+      <p class="lead mb-0">Consulta la información disponible y accede a las herramientas habilitadas para tu rol.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="accesos-disponibles">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow mb-1">Accesos</p>
+        <h2 id="accesos-disponibles" class="h3 mb-0">Herramientas disponibles</h2>
+      </div>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-xl-4">
+        <article class="card module-card h-100">
+          <div class="card-body d-flex flex-column">
+            <span class="status-pill status-ready align-self-start">Disponible</span>
+            <h3 class="h4 mt-3">Mi cuenta</h3>
+            <p class="text-secondary flex-grow-1">Revisa tu sesión y cierra el acceso de forma segura.</p>
+            <a class="btn btn-outline-primary align-self-start" href="{{ url_for('auth.account') }}">Abrir mi cuenta</a>
+          </div>
+        </article>
+      </div>
+      {% if g.user.rol in ['administrador', 'gerente'] %}
+        <div class="col-md-6 col-xl-4">
+          <article class="card module-card h-100 featured-card">
+            <div class="card-body d-flex flex-column">
+              <span class="status-pill status-ready align-self-start">Disponible</span>
+              <h3 class="h4 mt-3">Reportes</h3>
+              <p class="text-secondary flex-grow-1">Consulta los cinco reportes administrativos calculados por PostgreSQL.</p>
+              <a class="btn btn-primary align-self-start" href="{{ url_for('reportes.index') }}">Ver reportes</a>
+            </div>
+          </article>
+        </div>
+      {% endif %}
+      {% if g.user.rol == 'administrador' %}
+        <div class="col-md-6 col-xl-4">
+          <article class="card module-card h-100">
+            <div class="card-body d-flex flex-column">
+              <span class="status-pill status-ready align-self-start">Disponible</span>
+              <h3 class="h4 mt-3">Personal</h3>
+              <p class="text-secondary flex-grow-1">Registra usuarios del personal y asigna su rol y sucursal.</p>
+              <a class="btn btn-outline-primary align-self-start" href="{{ url_for('auth.register') }}">Registrar personal</a>
+            </div>
+          </article>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="mt-5" aria-labelledby="modulos-operativos">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow mb-1">Próxima etapa</p>
+        <h2 id="modulos-operativos" class="h3 mb-0">Módulos operativos</h2>
+      </div>
+    </div>
+    <p class="text-secondary mb-3">El backend de estos módulos ya ofrece datos, pero sus pantallas de operación todavía están pendientes.</p>
+    <div class="row g-3">
+      {% for module in [
+        ('Clientes e historial', 'Chris'),
+        ('Reservas y mesas', 'Chris'),
+        ('Inventario y producción', 'Rodrigo'),
+        ('Ventas', 'Rodrigo')
+      ] %}
+        <div class="col-sm-6 col-xl-3">
+          <div class="pending-module h-100">
+            <span class="status-pill status-pending">Pantalla pendiente</span>
+            <h3 class="h5 mt-3">{{ module[0] }}</h3>
+            <p class="small text-secondary mb-0">Responsable funcional: {{ module[1] }}.</p>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

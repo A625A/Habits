@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Reportes · Habits{% endblock %}
+{% block content %}
+  <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3 mb-4">
+    <div>
+      <p class="eyebrow mb-2">Administración</p>
+      <h1 class="mb-2">Reportes de Habits</h1>
+      <p class="text-secondary mb-0">Resultados calculados en PostgreSQL con el intervalo inicial incluido y el final excluido.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('inicio.index') }}">Volver al inicio</a>
+  </div>
+
+  <section class="card report-card mb-4" aria-labelledby="filtros-reportes">
+    <div class="card-body">
+      <h2 id="filtros-reportes" class="h4">Filtros</h2>
+      <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label" for="desde">Desde</label>
+          <input class="form-control" id="desde" type="date" name="desde" value="{{ filters.desde }}" required>
+          <div class="form-text">Día incluido.</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="hasta">Hasta</label>
+          <input class="form-control" id="hasta" type="date" name="hasta" value="{{ filters.hasta }}" required>
+          <div class="form-text">Día excluido.</div>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label" for="mes">Mes de inventario</label>
+          <input class="form-control" id="mes" type="month" name="mes" value="{{ filters.mes }}" required>
+          <div class="form-text">Vencimientos del mes seleccionado.</div>
+        </div>
+        <div class="col-12">
+          <button class="btn btn-primary" type="submit">Consultar reportes</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  {% if reports is not none %}
+    <nav class="report-index mb-4" aria-label="Reportes disponibles">
+      <span class="fw-semibold me-2">Ir a:</span>
+      <a href="#productos">Productos</a>
+      <a href="#frecuentes">Clientes frecuentes</a>
+      <a href="#reservas">Reservas</a>
+      <a href="#inventario">Inventario</a>
+      <a href="#sucursales">Sucursales</a>
+    </nav>
+
+    <section id="productos" class="card report-card mb-4" aria-labelledby="titulo-productos">
+      <div class="card-body">
+        <p class="eyebrow mb-1">Reporte 1</p>
+        <h2 id="titulo-productos" class="h3">Top 10 de productos más vendidos</h2>
+        <p class="text-secondary">Unidades e importe de ventas registradas entre {{ filters.desde }} y {{ filters.hasta }}.</p>
+        {% if reports.productos %}
+          <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+              <thead><tr><th scope="col">Producto</th><th scope="col" class="text-end">Unidades</th><th scope="col" class="text-end">Importe</th></tr></thead>
+              <tbody>
+                {% for row in reports.productos %}
+                  <tr><td>{{ row.nombre }}</td><td class="text-end">{{ row.unidades }}</td><td class="text-end text-nowrap">{{ row.importe|money }}</td></tr>
+                {% endfor %}
+              </tbody>
+              <tfoot><tr><th scope="row">Total del top mostrado</th><td class="text-end">{{ totals.productos.unidades }}</td><td class="text-end text-nowrap">{{ totals.productos.importe|money }}</td></tr></tfoot>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state"><p class="mb-0">No hay ventas en el intervalo seleccionado.</p></div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section id="frecuentes" class="card report-card mb-4" aria-labelledby="titulo-frecuentes">
+      <div class="card-body">
+        <p class="eyebrow mb-1">Reporte 2</p>
+        <h2 id="titulo-frecuentes" class="h3">Top 10 de clientes más frecuentes</h2>
+        <p class="text-secondary">Cuenta visitas reales, no reservas sin llegada.</p>
+        {% if reports.frecuentes %}
+          <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+              <thead><tr><th scope="col">Cliente</th><th scope="col" class="text-end">Visitas</th></tr></thead>
+              <tbody>
+                {% for row in reports.frecuentes %}
+                  <tr><td>{{ row.nombre }}</td><td class="text-end">{{ row.visitas }}</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state"><p class="mb-0">No hay visitas registradas en el intervalo seleccionado.</p></div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section id="reservas" class="card report-card mb-4" aria-labelledby="titulo-reservas">
+      <div class="card-body">
+        <p class="eyebrow mb-1">Reporte 3</p>
+        <h2 id="titulo-reservas" class="h3">Top 5 de clientes con más reservas</h2>
+        <p class="text-secondary">Incluye reservas confirmadas y completadas, junto con preferencias registradas.</p>
+        {% if reports.reservas %}
+          <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+              <thead><tr><th scope="col">Cliente</th><th scope="col" class="text-end">Confirmadas</th><th scope="col" class="text-end">Completadas</th><th scope="col" class="text-end">Total</th><th scope="col">Preferencias</th></tr></thead>
+              <tbody>
+                {% for row in reports.reservas %}
+                  <tr>
+                    <td>{{ row.nombre }}</td>
+                    <td class="text-end">{{ row.confirmadas }}</td>
+                    <td class="text-end">{{ row.completadas }}</td>
+                    <td class="text-end">{{ row.reservas }}</td>
+                    <td>{{ row.preferencias|join(', ') if row.preferencias else '—' }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state"><p class="mb-0">No hay reservas confirmadas o completadas en el intervalo seleccionado.</p></div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section id="inventario" class="card report-card mb-4" aria-labelledby="titulo-inventario">
+      <div class="card-body">
+        <p class="eyebrow mb-1">Reporte 4</p>
+        <h2 id="titulo-inventario" class="h3">Ingredientes bajos o con vencimiento</h2>
+        <p class="text-secondary">Stock actual y lotes con vencimiento durante {{ filters.mes }}. El stock no es una reconstrucción histórica.</p>
+        {% if reports.inventario %}
+          <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+              <thead><tr><th scope="col">Sucursal</th><th scope="col">Ingrediente</th><th scope="col" class="text-end">Disponible</th><th scope="col" class="text-end">Referencia</th><th scope="col">Alerta</th><th scope="col">Vencimiento</th><th scope="col" class="text-end">Saldo del lote</th></tr></thead>
+              <tbody>
+                {% for row in reports.inventario %}
+                  <tr>
+                    <td>{{ row.sucursal }}</td>
+                    <td>{{ row.ingrediente }}</td>
+                    <td class="text-end text-nowrap">{{ row.disponible_actual|quantity }} {{ row.unidad }}</td>
+                    <td class="text-end text-nowrap">{{ row.referencia|quantity }} {{ row.unidad }}</td>
+                    <td>{% if row.bajo_stock %}<span class="badge text-bg-danger">Stock bajo</span>{% else %}<span class="badge text-bg-secondary">{{ row.estado|capitalize }}</span>{% endif %}</td>
+                    <td>{{ row.vencimiento.isoformat() if row.vencimiento else '—' }}</td>
+                    <td class="text-end text-nowrap">{{ (row.saldo_lote|quantity ~ ' ' ~ row.unidad) if row.saldo_lote is not none else '—' }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state"><p class="mb-0">No hay stock bajo ni lotes con vencimiento en el mes seleccionado.</p></div>
+        {% endif %}
+      </div>
+    </section>
+
+    <section id="sucursales" class="card report-card mb-4" aria-labelledby="titulo-sucursales">
+      <div class="card-body">
+        <p class="eyebrow mb-1">Reporte 5</p>
+        <h2 id="titulo-sucursales" class="h3">Comparación de sucursales</h2>
+        <p class="text-secondary">Reservas, ventas e importe agregados por separado para evitar duplicaciones.</p>
+        {% if reports.sucursales %}
+          <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+              <thead><tr><th scope="col">Sucursal</th><th scope="col" class="text-end">Confirmadas</th><th scope="col" class="text-end">Completadas</th><th scope="col" class="text-end">Reservas</th><th scope="col" class="text-end">Ventas</th><th scope="col" class="text-end">Importe</th></tr></thead>
+              <tbody>
+                {% for row in reports.sucursales %}
+                  <tr><td>{{ row.nombre }}</td><td class="text-end">{{ row.confirmadas }}</td><td class="text-end">{{ row.completadas }}</td><td class="text-end">{{ row.reservas }}</td><td class="text-end">{{ row.ventas }}</td><td class="text-end text-nowrap">{{ row.importe|money }}</td></tr>
+                {% endfor %}
+              </tbody>
+              <tfoot><tr><th scope="row" colspan="3">Total de sucursales</th><td class="text-end">{{ totals.sucursales.reservas }}</td><td class="text-end">{{ totals.sucursales.ventas }}</td><td class="text-end text-nowrap">{{ totals.sucursales.importe|money }}</td></tr></tfoot>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty-state"><p class="mb-0">No hay sucursales disponibles para comparar.</p></div>
+        {% endif %}
+      </div>
+    </section>
+  {% endif %}
+{% endblock %}
