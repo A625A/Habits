@@ -17,9 +17,10 @@ Ver [integración, contribuciones y pendientes](docs/integracion-main-fase-2.md)
 
 La plantilla Bootstrap, el inicio y la presentación de los cinco reportes ya están
 implementados. Las pantallas operativas de clientes, reservas, inventario, producción
-y ventas, además de Railway, siguen pendientes. Los comandos Flask antiguos de abajo
-conservan su alcance original;
-para las 18 tablas usar `sql/fase1/inicializar.sql` y luego `db-backend-upgrade`.
+y ventas siguen pendientes. Railway está preparado, pero no se ha creado ni desplegado
+ningún servicio público. Para las 18 tablas usar `sql/fase1/inicializar.sql` y luego
+`db-backend-upgrade`; los comandos core antiguos conservan únicamente su alcance
+histórico.
 Las secciones de equipos/demo documentan trabajo histórico; no crean cuentas
 ni cargan datos operativos automáticamente.
 
@@ -31,7 +32,8 @@ No se autoriza despliegue ni trabajo de la siguiente fase.
 
 - Python 3.12 o posterior (verificado localmente con 3.14.6).
 - PostgreSQL 17 y sus comandos `initdb`, `pg_ctl`, `createuser`, `createdb`, `psql`.
-- Git. En Windows usar WSL para estos comandos; el entorno verificado fue macOS.
+- Git. En Windows usar WSL para estos comandos; el procedimiento también funciona
+  en Linux y macOS con PostgreSQL 17 disponible.
 
 ## Instalar Python y configurar variables
 
@@ -76,6 +78,9 @@ createuser -h "$PWD/.local/socket" -p 55432 -U habits_admin --pwprompt habits_ap
 createdb -h "$PWD/.local/socket" -p 55432 -U habits_admin -O habits_app habits
 createuser -h "$PWD/.local/socket" -p 55432 -U habits_admin --pwprompt habits_test
 createdb -h "$PWD/.local/socket" -p 55432 -U habits_admin -O habits_test habits_test
+psql -X -h "$PWD/.local/socket" -p 55432 -U habits_admin -d habits \
+  -v ON_ERROR_STOP=1 -f sql/fase1/rol_operaciones.sql \
+  -c 'GRANT habits_operaciones TO habits_app, habits_test;'
 ```
 
 `initdb` se ejecuta **una sola vez**. Este clúster escucha únicamente en loopback.
@@ -96,24 +101,25 @@ pg_ctl -D .local/postgres stop -m fast
 pg_ctl -D .local/postgres -l .local/postgres.log -o "-h 127.0.0.1 -p 55432 -k '$PWD/.local/socket'" start
 ```
 
-## Crear esquema y ejecutar Flask
+## Crear el esquema completo y ejecutar Flask
 
 ```bash
-python -m flask --app app db-init
-python -m flask --app app db-seed
-python -m flask --app app db-upgrade
+psql -X -h 127.0.0.1 -p 55432 -U habits_app -d habits -W \
+  -v ON_ERROR_STOP=1 -f sql/fase1/inicializar.sql
+python -m flask --app app db-backend-upgrade
 python -m flask --app app run --host 127.0.0.1 --port 5000
 ```
 
-`db-init` crea `sql/01_core.sql` en una sola transacción. Rechaza tablas existentes;
-no contiene DROP ni modifica datos de una instalación previa. No repetirlo si ya
-se creó el esquema. `db-seed` ejecuta `sql/08_seed.sql`: dos sucursales ficticias,
-sin usuarios, productos ni contraseñas. Es repetible y preserva las filas existentes.
-En la copia original de Andrew ambos comandos ya se ejecutaron al validar la entrega.
+`inicializar.sql` instala o amplía en una transacción las 18 tablas, autenticación,
+auditoría, procedimientos, cinco funciones de reportes, dos sucursales y doce
+productos. Conserva una instalación compatible y aborta ante un esquema parcial o
+desconocido. `db-backend-upgrade` aplica los permisos y el procedimiento de recepción
+de Fase 2; es repetible y no carga operaciones. No ejecutar `db-init`, `db-seed` y
+`db-upgrade` además de este flujo sobre una base nueva: corresponden al core histórico.
 
-Si ya tenés Fase 1, ejecutar **solo** `db-upgrade`: aplica `01_auth.sql` y
-`06_auditoria.sql` juntos, en una transacción, sin cambiar columnas existentes.
-Es repetible y no carga cuentas ni datos de negocio.
+Ni el import de `wsgi.py` ni el arranque de Flask crean tablas, cuentas o datos.
+Las ampliaciones futuras se aplican como una operación explícita y revisada, nunca
+concatenadas al comando de arranque.
 
 ```bash
 curl --fail http://127.0.0.1:5000/health
@@ -121,9 +127,8 @@ curl --fail http://127.0.0.1:5000/health/db
 ```
 
 `/health` confirma que Flask responde; `/health/db` ejecuta `SELECT 1` y devuelve
-200 o 503. Confirma conectividad, no presencia del esquema ni disponibilidad de
-módulos futuros. `/` y los prefijos reservados devuelven 404 hasta que sus dueños
-agreguen rutas. Nunca se crea la base al importar Flask o iniciar un worker.
+200 o 503. Confirma conectividad, no presencia del esquema completo. El dashboard
+está en `/`; las pantallas operativas marcadas como pendientes todavía no existen.
 
 También se puede aplicar cada SQL con `psql -v ON_ERROR_STOP=1 --single-transaction -f`
 usando una conexión configurada por el operador; no aplicar todos los SQL a ciegas.
@@ -327,23 +332,123 @@ Los Blueprints vacíos permiten agregar rutas sin modificar `app/__init__.py`.
 No cambiar columnas compartidas sin coordinación con Andrew. Cada módulo posee
 sus servicios, SQL y pruebas. Brian ampliará este README para la entrega final.
 
-## WSGI y despliegue posterior
+## WSGI y preparación de Railway
 
 Prueba local del servidor WSGI:
 
 ```bash
-gunicorn --bind 127.0.0.1:8000 wsgi:app
+export PORT=8000
+gunicorn --bind 0.0.0.0:$PORT wsgi:app
 ```
 
-Railway queda para Brian, con revisión de Andrew. Se entregan `wsgi.py`, Gunicorn
-y configuración mediante `DATABASE_URL` y `SECRET_KEY`; no se ha creado ningún
-servicio remoto. Antes de desplegar faltan los módulos funcionales y autorización.
-No aplicar DDL ni seed en cada arranque. Los costos y ajustes del servicio se
-verificarán al preparar ese despliegue; esta entrega no los presupone.
+Este arranque se comprobó localmente en modo `production` contra PostgreSQL 17
+aislado: Gunicorn escuchó en el `PORT` indicado y `/health`, `/health/db` y
+`/auth/login` respondieron 200. La plataforma Railway y su dominio aún no se han
+probado porque no se creó ningún servicio externo.
 
-En Railway configurar `HABITS_ENV=production`, `SECRET_KEY` aleatoria y
-`DATABASE_URL` del servicio, sin debug. El comando previsto para Brian es
-`gunicorn --bind 0.0.0.0:$PORT wsgi:app`. `wsgi.py` ya expone la factory y no necesita
-cambios ni DDL al importar. Antes de exponerlo públicamente, Brian y Andrew deben
-validar HTTPS/proxy, límites de intentos de login y mantenimiento de sesiones
-expiradas. Esta fase verifica autenticación local, no endurecimiento de producción.
+`wsgi.py` expone `app` sin ejecutar DDL. `railway.json` fija el mismo comando con el
+`PORT` inyectado por Railway y configura `/health/db` como healthcheck. No define un
+pre-deploy: la instalación inicial necesita privilegios y supervisión, y no debe
+repetirse en cada despliegue. Railway usa actualmente Railpack para detectar builds
+y permite sobrescribir el comando de arranque; el healthcheck acepta cualquier 2xx
+antes de activar el despliegue. Consultar la documentación oficial de
+[comandos de arranque](https://docs.railway.com/deployments/start-command),
+[PostgreSQL](https://docs.railway.com/databases/postgresql),
+[variables](https://docs.railway.com/variables),
+[pre-deploy](https://docs.railway.com/deployments/pre-deploy-command) y
+[healthchecks](https://docs.railway.com/deployments/healthchecks).
+
+### Crear los servicios y variables
+
+Estos pasos están preparados, pero requieren acceso al proyecto Railway y no se han
+ejecutado:
+
+1. Crear un proyecto y añadir un servicio PostgreSQL.
+2. Crear el servicio web desde este repositorio cuando la rama esté integrada y el
+   despliegue haya sido autorizado. Revisar los cambios pendientes antes de desplegar.
+3. En el servicio web definir:
+
+   ```text
+   DATABASE_URL=${{Postgres.DATABASE_URL}}
+   SECRET_KEY=<valor aleatorio de al menos 32 caracteres>
+   HABITS_ENV=production
+   HABITS_DEMO_LOGIN=0
+   ```
+
+   Adaptar `Postgres` si el servicio tiene otro nombre. `DATABASE_URL` es una
+   referencia al servicio privado; no copiar la URL pública. Railway proporciona
+   `PORT`, por lo que no hace falta definirlo. No configurar `TEST_DATABASE_URL` en
+   producción ni publicar `.env`.
+4. Generar un dominio público para el servicio web solo después de instalar la base
+   y aprobar el despliegue. No habilitar acceso público permanente a PostgreSQL.
+
+### Instalación inicial controlada
+
+La primera instalación ocurre **una sola vez**. Andrew debe ejecutarla o supervisarla
+porque crea el rol del clúster, el esquema y el primer administrador. Desde una
+máquina confiable con este repositorio y `psql` 17, habilitar temporalmente el TCP
+Proxy del servicio PostgreSQL y copiar `DATABASE_PUBLIC_URL` sin guardarla en Git ni
+en el historial. Se puede leer de forma oculta en la sesión:
+
+```bash
+read -rsp "DATABASE_PUBLIC_URL: " DATABASE_PUBLIC_URL
+export DATABASE_PUBLIC_URL
+echo
+psql -X -v ON_ERROR_STOP=1 "$DATABASE_PUBLIC_URL" \
+  -f sql/fase1/rol_operaciones.sql \
+  -c 'GRANT habits_operaciones TO CURRENT_USER;'
+psql -X -v ON_ERROR_STOP=1 "$DATABASE_PUBLIC_URL" \
+  -f sql/fase1/inicializar.sql
+psql -X -v ON_ERROR_STOP=1 "$DATABASE_PUBLIC_URL" \
+  -f sql/fase2/10_backend.sql
+```
+
+Crear el primer administrador normal; la cuenta rápida está bloqueada en producción:
+
+```bash
+DATABASE_URL="$DATABASE_PUBLIC_URL" \
+SECRET_KEY="$(python -c 'import secrets; print(secrets.token_hex(32))')" \
+HABITS_ENV=production HABITS_DEMO_LOGIN=0 \
+python -m flask --app app create-admin
+```
+
+Opcionalmente cargar mesas, recetas e inventario ficticios después de consultar el
+`usuario_id` del administrador y revisar su alcance:
+
+```bash
+psql -X -v ON_ERROR_STOP=1 "$DATABASE_PUBLIC_URL" \
+  -v usuario_id=SU_ID -f sql/datos_ejemplo/cargar.psql
+unset DATABASE_PUBLIC_URL
+```
+
+Cerrar después el acceso público de PostgreSQL. La carga opcional no crea clientes,
+preferencias, reservas, visitas, producciones ni ventas; Chris y Rodrigo deben aportar
+datos representativos de esos módulos para una demo integral. No inventar operaciones
+directamente en producción solo para poblar capturas.
+
+### Despliegues posteriores
+
+Los despliegues normales solo construyen la imagen, arrancan Gunicorn y esperan el
+healthcheck. No vuelven a ejecutar `rol_operaciones.sql`, `inicializar.sql`, seeds ni
+`create-admin`. Si una versión futura cambia SQL, Andrew debe revisar el cambio y
+aplicarlo como una operación separada antes de promover esa versión; no añadirlo a
+`startCommand` ni a pre-deploy sin diseñar una migración repetible y segura.
+
+### Comprobaciones posteriores
+
+Con el dominio realmente generado, sustituir `<URL_PUBLICA>` y comprobar:
+
+```bash
+curl --fail https://<URL_PUBLICA>/health
+curl --fail https://<URL_PUBLICA>/health/db
+```
+
+Después abrir `/auth/login`, iniciar sesión con el administrador normal, recorrer
+`/`, `/auth/cuenta` y `/reportes`, consultar un intervalo con datos y otro vacío, y
+cerrar sesión. Railway usa el healthcheck durante el despliegue, no como monitoreo
+continuo. Antes de un despliegue público Andrew debe revisar límites de intentos de
+login, limpieza de sesiones expiradas, copias de seguridad y restauración. No hay una
+URL pública ni resultados remotos que reportar todavía.
+
+Guion y capturas pendientes: [docs/demo.md](docs/demo.md). Evidencia local de
+PostgreSQL y Firefox: [verificación de Brian](docs/verificacion-interfaz-reportes-brian.md).
