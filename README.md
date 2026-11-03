@@ -155,6 +155,26 @@ vencidos. Un inventario que ya tenga cualquier lote se conserva sin entradas nue
 No crea cuentas, contraseñas, reservas, producciones ni ventas. La carga completa
 se guarda en una transacción; un error la deshace. No se ejecuta al iniciar Flask.
 
+Para revisar los datos, abrir `sql/datos_ejemplo/revisar_reservas_inventario.sql`
+en pgAdmin o ejecutarlo con `psql -X -v ON_ERROR_STOP=1 -f` y la conexión local.
+Solo consulta: muestra horarios, posibles cruces, existencias por sede y lotes
+vencidos o próximos a vencer. La consulta de cruces debe devolver cero filas.
+Una reserva termina a los 90 minutos y otra puede comenzar justo a esa hora.
+El inventario incluye lotes que vencen hoy y excluye los que vencieron antes;
+la alerta de existencias se activa al llegar al 15 % de la referencia o menos.
+
+Las comprobaciones con los datos de ejemplo se ejecutan con:
+
+```bash
+python -m pytest tests/test_datos_ejemplo.py -q
+```
+
+Requieren `TEST_DATABASE_URL` configurada para una base exclusiva de pruebas
+terminada en `_test`, como se explica en la sección de pruebas. Se comprueban
+capacidad, horarios, cancelación, referencias de sucursal y registros inactivos;
+también vencimientos de hoy, siete y ocho días, límites del 15 % y saldos inválidos.
+Cada caso usa un esquema temporal separado y lo elimina al terminar.
+
 ### Acceso rápido para la demo local
 
 Andrew autorizó una cuenta de demostración: **usuario `admin`, contraseña `123`**.
