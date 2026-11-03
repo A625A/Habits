@@ -568,3 +568,127 @@ def test_ensayo_manual_revierte_produccion_venta_e_inventario(db, operaciones, d
     assert resultado.returncode == 0, resultado.stderr
     assert "t|t|t|t" in resultado.stdout
     assert estado_operaciones(db) == antes
+
+
+@pytest.fixture
+def demo(db, carga):
+    def ejecutar():
+        # La carga base y las operaciones se guardan juntas, igual que en cargar_demo.psql.
+        with db.transaction():
+            carga()
+            usuario = db.execute(
+                "SELECT usuario_id FROM usuarios WHERE email='carga@example.test'"
+            ).fetchone()[0]
+            db.execute("SELECT set_config('habits.usuario_carga',%s,true)", (str(usuario),))
+            db.execute(SQL.with_name("operaciones.sql").read_text(encoding="utf-8"))
+
+    return ejecutar
+
+
+def test_demo_completa_puebla_los_cinco_reportes_y_ambas_sucursales(db, demo):
+    demo()
+    for tabla, cantidad in {
+        "clientes": 6,
+        "reservas": 10,
+        "visitas": 12,
+        "preferencias_cliente": 12,
+        "producciones": 12,
+        "ventas": 14,
+        "detalle_ventas": 26,
+    }.items():
+        assert (
+            db.execute(sql.SQL("SELECT count(*) FROM {}").format(sql.Identifier(tabla))).fetchone()[
+                0
+            ]
+            == cantidad
+        )
+    assert db.execute(
+        "SELECT estado,count(*) FROM reservas GROUP BY estado ORDER BY estado"
+    ).fetchall() == [("cancelada", 2), ("completada", 6), ("confirmada", 2)]
+    assert (
+        db.execute("SELECT count(*) FROM visitas WHERE reserva_id IS NOT NULL").fetchone()[0] == 6
+    )
+    assert db.execute("SELECT count(*) FROM visitas WHERE tipo='llevar'").fetchone()[0] == 6
+    assert db.execute("SELECT count(DISTINCT producto_id) FROM detalle_ventas").fetchone()[0] == 12
+    assert db.execute("SELECT sum(cantidad_disponible) FROM producciones").fetchone()[0] == 36
+
+    # Consultar el mes actual, igual que la pantalla de reportes al abrirse.
+    desde, hasta, mes = db.execute(
+        """SELECT date_trunc('month',CURRENT_TIMESTAMP AT TIME ZONE 'America/Guatemala')
+            AT TIME ZONE 'America/Guatemala',
+        (date_trunc('month',CURRENT_TIMESTAMP AT TIME ZONE 'America/Guatemala')+interval '1 month')
+            AT TIME ZONE 'America/Guatemala',
+        (CURRENT_TIMESTAMP AT TIME ZONE 'America/Guatemala')::date"""
+    ).fetchone()
+    assert (
+        len(db.execute("SELECT * FROM reporte_productos(%s,%s)", (desde, hasta)).fetchall()) == 10
+    )
+    frecuentes = db.execute(
+        "SELECT visitas FROM reporte_frecuentes(%s,%s)", (desde, hasta)
+    ).fetchall()
+    assert sorted(r[0] for r in frecuentes) == [1, 1, 2, 2, 3, 3]
+    reservas = db.execute(
+        "SELECT preferencias FROM reporte_reservas(%s,%s)", (desde, hasta)
+    ).fetchall()
+    assert len(reservas) == 5
+    assert all(len(r[0]) == 2 for r in reservas)
+    inventario = db.execute("SELECT sucursal_id FROM reporte_inventario(%s)", (mes,)).fetchall()
+    assert len({r[0] for r in inventario}) == 2
+    sucursales = db.execute(
+        "SELECT reservas,ventas,importe FROM reporte_sucursales(%s,%s)", (desde, hasta)
+    ).fetchall()
+    assert len(sucursales) == 2
+    assert all(r[0] >= 3 and r[1] == 7 and r[2] > 0 for r in sucursales)
+    assert [r[2] for r in sucursales] == [316, 476]
+
+
+def test_repetir_demo_no_duplica_operaciones_ni_repone_existencias(db, demo):
+    demo()
+    antes = estado_operaciones(db)
+    tablas = ("clientes", "reservas", "visitas", "preferencias_cliente")
+    personas = {
+        tabla: db.execute(
+            sql.SQL("SELECT * FROM {} ORDER BY 1").format(sql.Identifier(tabla))
+        ).fetchall()
+        for tabla in tablas
+    }
+    demo()
+    assert estado_operaciones(db) == antes
+    for tabla in tablas:
+        assert (
+            db.execute(
+                sql.SQL("SELECT * FROM {} ORDER BY 1").format(sql.Identifier(tabla))
+            ).fetchall()
+            == personas[tabla]
+        )
+
+
+def test_error_durante_produccion_deshace_demo_sin_reponer_stock(db, carga, demo):
+    carga()
+    db.execute(
+        """UPDATE lotes_ingrediente SET cantidad_disponible=0 WHERE inventario_id IN
+        (SELECT inventario_id FROM inventario_ingrediente JOIN ingredientes USING(ingrediente_id)
+        WHERE nombre='Huevo')"""
+    )
+    antes = estado_operaciones(db)
+    with pytest.raises(psycopg.errors.RaiseException, match="Ingrediente sin existencias"):
+        demo()
+    assert estado_operaciones(db) == antes
+    assert db.execute("SELECT count(*) FROM clientes").fetchone()[0] == 0
+
+
+def test_demo_incompleta_no_sobrescribe_clientes_ni_deja_carga_a_medias(db, demo):
+    db.execute(
+        """INSERT INTO clientes(nombre,email) VALUES
+        ('Registro anterior','habits.demo.1.1@example.test')"""
+    )
+    with pytest.raises(psycopg.errors.RaiseException, match="datos incompletos"):
+        demo()
+    assert db.execute("SELECT nombre FROM clientes").fetchall() == [("Registro anterior",)]
+    for tabla in ("ingredientes", "mesas", "lotes_ingrediente", "producciones", "ventas"):
+        assert (
+            db.execute(sql.SQL("SELECT count(*) FROM {}").format(sql.Identifier(tabla))).fetchone()[
+                0
+            ]
+            == 0
+        )

@@ -4,8 +4,7 @@
 SELECT right(current_database(),5)='_test' AS es_prueba \gset
 \if :es_prueba
 \else
-    \echo 'El ensayo requiere una base aislada terminada en _test.'
-    \quit 1
+    DO $$ BEGIN RAISE EXCEPTION 'El ensayo requiere una base aislada terminada en _test'; END; $$;
 \endif
 \prompt 'ID de sucursal existente: ' sucursal_id
 \prompt 'ID de usuario activo autorizado en esa sucursal: ' usuario_id

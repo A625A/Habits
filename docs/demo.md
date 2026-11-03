@@ -13,9 +13,12 @@ Antes de presentar:
    creada con `create-admin`; la cuenta rápida de demo es exclusivamente local.
 3. Identificar el intervalo real que contiene las ventas, visitas y reservas de
    demostración, y el mes de vencimiento de los lotes. No asumir fechas fijas.
-4. Abrir `/reportes` y confirmar que las cinco secciones contienen los datos que
-   se explicarán. Si solo se cargó `sql/datos_ejemplo/cargar.psql`, inventario
-   tendrá datos, pero no habrá clientes, visitas, reservas, producciones ni ventas.
+4. Para una base de práctica, ejecutar `sql/datos_ejemplo/cargar_demo.psql` con
+   `-v usuario_id=SU_ID` y la conexión correspondiente. Incluye la carga base y
+   las operaciones ficticias de ambas sucursales. El comando antiguo
+   `cargar.psql` sigue limitado a mesas, recetas e inventario.
+5. Abrir `/reportes` y confirmar que las cinco secciones contienen datos. Elegir
+   el mes de la carga; repetirla no cambia las fechas ni duplica las ventas.
 
 ## Recorrido
 
@@ -102,6 +105,7 @@ Tomarlas únicamente después del despliegue autorizado y con datos definitivos:
   crear el primer administrador de producción, revisar el endurecimiento pendiente
   y autorizar el despliegue público.
 
-El cargador existente de datos de ejemplo cubre mesas, ingredientes, recetas,
-configuraciones de inventario y lotes. No crea los datos operativos anteriores y no
-debe modificarse solo para obtener capturas.
+`cargar.psql` cubre mesas, ingredientes, recetas, configuraciones y lotes.
+`cargar_demo.psql` añade también clientes, preferencias, reservas, visitas,
+producciones y ventas ficticias en ambas sucursales. Las capturas finales deben
+corresponder al entorno y al período elegidos para la presentación.

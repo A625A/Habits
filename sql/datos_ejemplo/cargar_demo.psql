@@ -1,0 +1,12 @@
+\set ON_ERROR_STOP on
+-- Carga completa y opcional para mostrar los cinco reportes.
+\if :{?usuario_id}
+BEGIN;
+SELECT pg_advisory_xact_lock(3088, 3);
+SELECT set_config('habits.usuario_carga', :'usuario_id', true);
+\ir datos.sql
+\ir operaciones.sql
+COMMIT;
+\else
+DO $$ BEGIN RAISE EXCEPTION 'Indicar el administrador con -v usuario_id=SU_ID'; END; $$;
+\endif

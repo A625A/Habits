@@ -164,6 +164,34 @@ vencidos. Un inventario que ya tenga cualquier lote se conserva sin entradas nue
 No crea cuentas, contraseñas, reservas, producciones ni ventas. La carga completa
 se guarda en una transacción; un error la deshace. No se ejecuta al iniciar Flask.
 
+Para una **demostración con los cinco reportes poblados**, usar en su lugar la
+carga completa, con el mismo administrador y una base de práctica:
+
+```bash
+psql -X -h 127.0.0.1 -p 55432 -U habits_app -d habits -W -v usuario_id=SU_ID -f sql/datos_ejemplo/cargar_demo.psql
+```
+
+Este comando incluye la carga base y agrega seis clientes ficticios, diez reservas
+(seis completadas, dos confirmadas y dos canceladas), doce visitas, doce preferencias,
+doce lotes de producción y catorce ventas. Cada sucursal tiene tres clientes,
+seis visitas y siete ventas. Se venden los doce productos; una atención tiene dos
+compras para mostrar que visitas y ventas se cuentan por separado. Con catálogo y
+recetas iniciales, los importes por sede son Q316 y Q476. Dos lotes adicionales de
+café con vencimiento de hoy permiten mostrar alertas incluso a fin de mes.
+
+Las producciones y ventas usan los procedimientos de negocio: consumen ingredientes
+y unidades terminadas. El empleado responsable es el administrador indicado; no se
+crean usuarios ni contraseñas. Abrir `/reportes` con ese administrador y consultar
+el mes de la carga para ver productos vendidos, clientes frecuentes, reservas con
+preferencias, inventario y comparación de sucursales.
+
+Los correos `habits.demo.1.1@example.test` hasta `habits.demo.2.3@example.test`
+quedan reservados para identificar el conjunto. Repetir el comando no crea nuevas
+compras, no repone stock y no cambia las fechas originales. Si encuentra esos
+correos con datos incompletos, o faltan ingredientes o mesas libres, cancela la
+carga entera sin sobrescribir registros. Para presentar en otro mes, elegir el
+período original o preparar otra base de práctica; no alterar ventas históricas.
+
 Para revisar los datos, abrir `sql/datos_ejemplo/revisar_reservas_inventario.sql`
 en pgAdmin o ejecutarlo con `psql -X -v ON_ERROR_STOP=1 -f` y la conexión local.
 Solo consulta: muestra horarios, posibles cruces, existencias por sede y lotes
@@ -461,10 +489,12 @@ psql -X -v ON_ERROR_STOP=1 "$DATABASE_PUBLIC_URL" \
 unset DATABASE_PUBLIC_URL
 ```
 
-Cerrar después el acceso público de PostgreSQL. La carga opcional no crea clientes,
-preferencias, reservas, visitas, producciones ni ventas; Chris y Rodrigo deben aportar
-datos representativos de esos módulos para una demo integral. No inventar operaciones
-directamente en producción solo para poblar capturas.
+Cerrar después el acceso público de PostgreSQL. `cargar.psql` solo prepara mesas,
+recetas e inventario. Para una base elegida expresamente como demostración con
+datos ficticios, `cargar_demo.psql` incluye también clientes, preferencias,
+reservas, visitas, producciones y ventas de ambas sucursales, como se explica
+en la sección de carga completa. No cargar operaciones ficticias en una base
+destinada a registrar actividad real.
 
 ### Despliegues posteriores
 
