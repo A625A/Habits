@@ -1,7 +1,6 @@
 import secrets
-from datetime import date, datetime
+from datetime import date, datetime, time
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 import psycopg
 import pytest
@@ -9,7 +8,7 @@ from flask import Flask
 from psycopg import sql
 from test_auth_http import login, register
 
-from app.routes.reportes import _load_reports, _parse_filters
+from app.routes.reportes import GUATEMALA, _load_reports, _month_after, _parse_filters
 
 SQL = Path(__file__).resolve().parents[1] / "sql"
 
@@ -53,6 +52,10 @@ def reports_app(admin_app, database_url):
 
 
 def _seed_report_rows(database_url):
+    today = datetime.now(GUATEMALA).date()
+    visit_at = datetime.combine(today, time.min, GUATEMALA)
+    reservation_at = datetime.combine(today, time(10), GUATEMALA)
+    upper_bound = datetime.combine(_month_after(today.replace(day=1)), time.min, GUATEMALA)
     with psycopg.connect(database_url) as conn:
         branch = conn.execute(
             "SELECT sucursal_id FROM sucursales WHERE codigo='DEMO-01'"
@@ -74,14 +77,14 @@ def _seed_report_rows(database_url):
         ).fetchone()[0]
         conn.execute(
             """INSERT INTO reservas(sucursal_id,mesa_id,cliente_id,fecha_inicio,fecha_fin,
-            personas,estado) VALUES (%s,%s,%s,'2030-01-03 10:00-06','2030-01-03 11:30-06',
+            personas,estado) VALUES (%s,%s,%s,%s,%s + interval '90 minutes',
             2,'confirmada')""",
-            (branch, table, customer),
+            (branch, table, customer, reservation_at, reservation_at),
         )
         conn.execute(
             """INSERT INTO visitas(cliente_id,sucursal_id,usuario_id,tipo,atendida_en)
-            VALUES (%s,%s,%s,'llevar','2030-01-03 12:00-06')""",
-            (customer, branch, user),
+            VALUES (%s,%s,%s,'llevar',%s)""",
+            (customer, branch, user, visit_at),
         )
         conn.execute(
             """INSERT INTO preferencias_cliente(cliente_id,producto_id,nota_preferencia)
@@ -98,19 +101,30 @@ def _seed_report_rows(database_url):
         ).fetchone()[0]
         conn.execute(
             """INSERT INTO lotes_ingrediente(inventario_id,usuario_id,fecha_vencimiento,
-            cantidad_inicial,cantidad_disponible) VALUES (%s,%s,'2030-01-15',10,10)""",
-            (inventory, user),
+            cantidad_inicial,cantidad_disponible) VALUES (%s,%s,%s,10,10)""",
+            (inventory, user, today),
         )
         sale = conn.execute(
             """INSERT INTO ventas(sucursal_id,usuario_id,tipo,fecha)
-            VALUES (%s,%s,'llevar','2030-01-04 09:00-06') RETURNING venta_id""",
-            (branch, user),
+            VALUES (%s,%s,'llevar',%s) RETURNING venta_id""",
+            (branch, user, visit_at),
         ).fetchone()[0]
         conn.execute(
             """INSERT INTO detalle_ventas(venta_id,producto_id,cantidad,precio_unitario)
             VALUES (%s,%s,2,26)""",
             (sale, product),
         )
+        excluded_sale = conn.execute(
+            """INSERT INTO ventas(sucursal_id,usuario_id,tipo,fecha)
+            VALUES (%s,%s,'llevar',%s) RETURNING venta_id""",
+            (branch, user, upper_bound),
+        ).fetchone()[0]
+        conn.execute(
+            """INSERT INTO detalle_ventas(venta_id,producto_id,cantidad,precio_unitario)
+            VALUES (%s,%s,5,26)""",
+            (excluded_sale, product),
+        )
+    return today.replace(day=1)
 
 
 def test_inicio_exige_sesion_y_reportes_solo_permite_administrador(reports_app, admin_password):
@@ -129,6 +143,11 @@ def test_inicio_exige_sesion_y_reportes_solo_permite_administrador(reports_app, 
     assert login(manager, password, "gerente@example.test").status_code == 303
     assert manager.get("/").status_code == 200
     assert manager.get("/reportes").status_code == 403
+
+    assert register(admin, password, "mesero", "mesero@example.test").status_code == 303
+    waiter = reports_app.test_client()
+    assert login(waiter, password, "mesero@example.test").status_code == 303
+    assert waiter.get("/reportes").status_code == 403
 
 
 @pytest.mark.parametrize(
@@ -150,24 +169,56 @@ def test_reportes_vacios_no_se_confunden_con_error(reports_app, admin_password):
     login(client, admin_password)
     response = client.get("/reportes?desde=2030-01-01&hasta=2030-02-01&mes=2030-01")
     assert response.status_code == 200
-
-
-def test_consulta_real_consume_las_cinco_funciones(reports_app, database_url):
-    _seed_report_rows(database_url)
-    guatemala = ZoneInfo("America/Guatemala")
     filters = {
-        "desde": datetime(2030, 1, 1, tzinfo=guatemala),
-        "hasta": datetime(2030, 2, 1, tzinfo=guatemala),
+        "desde": datetime(2030, 1, 1, tzinfo=GUATEMALA),
+        "hasta": datetime(2030, 2, 1, tzinfo=GUATEMALA),
         "mes": date(2030, 1, 1),
     }
     with reports_app.app_context():
         reports = _load_reports(filters)
+    assert reports["productos"] == []
+    assert reports["frecuentes"] == []
+    assert reports["reservas"] == []
+    assert reports["inventario"] == []
+    assert len(reports["sucursales"]) == 2
+    assert all(row["reservas"] == row["ventas"] == 0 for row in reports["sucursales"])
 
+
+def test_consulta_real_consume_las_cinco_funciones(reports_app, database_url):
+    month = _seed_report_rows(database_url)
+    filters = {
+        "desde": datetime.combine(month, time.min, GUATEMALA),
+        "hasta": datetime.combine(_month_after(month), time.min, GUATEMALA),
+        "mes": month,
+    }
+    with reports_app.app_context():
+        reports = _load_reports(filters)
+
+    assert len(reports["productos"]) == 1
     assert reports["productos"][0]["unidades"] == 2
+    assert reports["productos"][0]["importe"] == 52
+
+    assert len(reports["frecuentes"]) == 1
     assert reports["frecuentes"][0]["visitas"] == 1
+
+    assert len(reports["reservas"]) == 1
+    assert reports["reservas"][0]["confirmadas"] == 1
+    assert reports["reservas"][0]["completadas"] == 0
     assert reports["reservas"][0]["reservas"] == 1
-    assert reports["inventario"][0]["unidad"] == "g"
-    assert reports["sucursales"][0]["ventas"] == 1
+    assert reports["reservas"][0]["preferencias"] == ["Latte de cardamomo y miel"]
+
+    assert len(reports["inventario"]) == 1
+    inventory = reports["inventario"][0]
+    assert inventory["unidad"] == "g"
+    assert inventory["disponible_actual"] == 10
+    assert inventory["referencia"] == 100
+    assert inventory["saldo_lote"] == 10
+    assert inventory["bajo_stock"] is True
+
+    assert len(reports["sucursales"]) == 2
+    first, second = reports["sucursales"]
+    assert (first["reservas"], first["ventas"], first["importe"]) == (1, 1, 52)
+    assert (second["reservas"], second["ventas"], second["importe"]) == (0, 0, 0)
 
 
 def test_falla_de_base_devuelve_estado_distinto_de_resultado_vacio(admin_app, admin_password):
