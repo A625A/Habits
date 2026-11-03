@@ -73,34 +73,69 @@ independientes y comprobaron:
 No se detectó un defecto ajeno en las funciones SQL o servicios durante esta
 revisión.
 
-## Revisión visual
+## Revisión visual e interactiva final
 
-El controlador de navegador integrado no estaba disponible en el entorno. Se
-usó Firefox headless con el HTML y CSS reales a 1440 px y 720 px. Se revisaron:
+Se realizó una segunda revisión sin stubs. Se creó otro clúster PostgreSQL 17
+descartable bajo `/tmp`, sin TCP, y una base exclusiva llamada
+`habits_ui_test`. Se instalaron `sql/fase1/inicializar.sql` y la ampliación de
+backend existente. La cuenta temporal se creó con `create-demo-admin`; los
+catálogos, recetas, mesas, inventarios y lotes se cargaron con
+`sql/datos_ejemplo/cargar.psql`. En esa base se agregaron un cliente, una
+reserva, una visita, una preferencia y una venta ficticios del mes actual. Las
+cinco funciones devolvieron respectivamente 1, 1, 1, 40 y 2 filas.
 
-- login y dashboard en ancho de laptop;
-- cuenta, registro y reportes en ancho reducido;
-- carga de Bootstrap y `styles.css`, jerarquía, espaciado, formularios,
-  botones, mensajes, filtros, estados vacíos y adaptación de la navegación.
+El controlador integrado no estaba disponible, pero Firefox 158 sí ofrecía
+Marionette. Se controló el navegador mediante su protocolo WebDriver nativo:
+los eventos indicados abajo fueron clics reales del navegador, no inferencias a
+partir de capturas ni peticiones HTTP aisladas.
 
-El registro necesitó un proveedor visual temporal de sucursales porque su GET
-consulta PostgreSQL; no se sustituyó su prueba funcional, que sí pasó contra la
-base real. La revisión headless no validó clics del menú colapsable ni el aspecto
-de tablas pobladas con todos los datos. No se prepararon capturas finales ni se
-considera cerrada la demo.
+### Interacciones ejecutadas
 
-Para la revisión manual pendiente, con una base local ya inicializada según el
-README:
+- Se completó el formulario y se pulsó **Iniciar sesión**. El POST respondió
+  303 y abrió `/auth/cuenta` con sesión real.
+- Se pulsaron los enlaces de inicio, reportes, registro de personal y cuenta.
+  Todas las pantallas respondieron 200; no hubo enlaces rotos entre las
+  pantallas implementadas.
+- A 720 px se pulsó dos veces el botón del menú: la clase pasó de
+  `collapse navbar-collapse` a `navbar-collapse collapse show` y volvió a
+  `navbar-collapse collapse`. Después se navegó por sus enlaces mediante clics.
+- Se pulsó **Consultar reportes** con `2026-11-01`, `2026-12-01` y `2026-11`.
+  Los valores se conservaron y aparecieron las cinco tablas con datos reales.
+- Se consultó `1990-01-01` a `1990-02-01`, mes `1990-01`. Se conservaron los
+  filtros y aparecieron los cuatro mensajes vacíos correspondientes; la
+  comparación de sucursales mantuvo sus dos filas reales con ceros.
+- Se envió el rango invertido `2026-12-01` a `2026-11-01`. La página respondió
+  400, conservó los tres filtros y mostró «La fecha inicial debe ser anterior a
+  la fecha final.».
+- Se pulsó **Cerrar sesión**. El POST respondió 303, volvió a `/auth/login` y el
+  título fue `Iniciar sesión · Habits`.
 
-1. Activar `.venv`, definir `DATABASE_URL`, `SECRET_KEY` y
-   `HABITS_ENV=development` solo en el entorno local.
-2. Ejecutar `python -m flask --app app run --host 127.0.0.1 --port 5000`.
-3. Abrir `/auth/login`; después revisar `/`, `/auth/cuenta`, `/auth/register` y
-   `/reportes` con una cuenta administradora.
-4. En `/reportes`, usar un intervalo que contenga los datos locales, verificar
-   las cinco tablas y probar una fecha inválida y un intervalo sin resultados.
-5. Repetir a 1440 px y 720 px; abrir el menú colapsable y comprobar el scroll
-   horizontal de tablas sin desbordar la página.
+### Datos y presentación observados
+
+En 1440 px, las tablas mostraron:
+
+- producto `Latte de cardamomo y miel`, 2 unidades y Q 52.00;
+- `Cliente Visual` con 1 visita;
+- el mismo cliente con 1 reserva confirmada y su preferencia;
+- 40 filas de inventario con sucursal, unidades, alertas, fechas y saldos;
+- dos sucursales, la primera con 1 reserva, 1 venta y Q 52.00, y la segunda con
+  valores cero.
+
+Importes, unidades, fechas, badges y encabezados resultaron legibles. A 720 px
+los filtros se apilaron y el contenido permaneció dentro de la página. Las
+tablas de reservas, inventario y sucursales desbordaron únicamente dentro de su
+contenedor adaptable. En inventario el área visible midió 480 px, la tabla 718
+px y el desplazamiento horizontal avanzó realmente de 0 a 237.68 px de un
+máximo de 238 px; se inspeccionaron ambos extremos y las columnas siguieron
+legibles. Bootstrap y `styles.css` se observaron aplicados, y el comportamiento
+del menú confirmó la carga del JavaScript de Bootstrap.
+
+Se conservaron capturas temporales como evidencia durante la revisión, pero no
+se versionaron porque no son las capturas de la demo final. No queda una
+interacción funcional pendiente de revisión manual. Una revisión humana en un
+navegador visible sigue siendo opcional para aprobación estética subjetiva, no
+para suplir evidencia funcional. El servidor, Firefox, la base y las capturas
+temporales se detuvieron y eliminaron al finalizar.
 
 ## Límites
 
