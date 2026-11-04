@@ -143,6 +143,7 @@ def test_inicio_exige_sesion_y_reportes_solo_permite_administrador(reports_app, 
     manager = reports_app.test_client()
     assert login(manager, password, "gerente@example.test").status_code == 303
     assert manager.get("/").status_code == 200
+    assert 'href="/reportes"' not in manager.get("/auth/cuenta").text
     assert manager.get("/reportes").status_code == 403
 
     assert register(admin, password, "mesero", "mesero@example.test").status_code == 303
