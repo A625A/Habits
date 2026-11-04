@@ -84,18 +84,17 @@ al intervalo representativo.
   dominio. Hasta entonces usar el marcador `<URL_PUBLICA>`; no inventar una URL.
 - Distinguir las comprobaciones locales de las que se hagan después en Railway.
 
-## Capturas finales necesarias
+## Capturas de validación
 
-Tomarlas únicamente después del despliegue autorizado y con datos definitivos:
+Las capturas actuales están en `docs/capturas/` y corresponden a PostgreSQL y
+Firefox locales. Muestran dashboard, historial, reservas, alertas, ventas, los cinco
+reportes, estado vacío, rango inválido y menú a 720 px. No contienen contraseñas ni
+datos personales y no deben presentarse como evidencia de Railway.
 
-- login y dashboard en laptop;
-- menú abierto en ancho reducido;
-- filtros con el intervalo usado en la presentación;
-- cada uno de los cinco reportes con datos legibles, incluyendo el desplazamiento
-  horizontal de inventario en ancho reducido;
-- resultado vacío y mensaje de rango inválido;
-- cuenta y cierre de sesión;
-- `/health/db` y dominio público, sin mostrar variables ni credenciales.
+Después del despliegue autorizado todavía se deben tomar o repetir, con datos
+definitivos, login, cuenta y cierre de sesión, `/health/db`, dominio público, filtros
+de la presentación y las vistas representativas anteriores. No mostrar variables
+ni credenciales.
 
 ## Dependencias para la demostración integral
 
