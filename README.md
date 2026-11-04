@@ -520,5 +520,8 @@ continuo. Antes de un despliegue público Andrew debe revisar límites de intent
 login, limpieza de sesiones expiradas, copias de seguridad y restauración. No hay una
 URL pública ni resultados remotos que reportar todavía.
 
-Guion y capturas pendientes: [docs/demo.md](docs/demo.md). Evidencia local de
-PostgreSQL y Firefox: [verificación de Brian](docs/verificacion-interfaz-reportes-brian.md).
+El [guion de demostración](docs/demo.md) conserva pendiente la URL pública y la
+validación de Railway. La [verificación de Brian](docs/verificacion-interfaz-reportes-brian.md)
+registra la suite completa de la base validada (215 pruebas), la regresión posterior,
+los flujos ejecutados con PostgreSQL y Firefox y las
+[capturas locales](docs/capturas/); ninguna corresponde a Railway.

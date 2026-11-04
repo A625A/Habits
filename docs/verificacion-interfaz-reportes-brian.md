@@ -1,6 +1,112 @@
 # Verificación de interfaz y reportes de Brian
 
-Fecha local: 2 de noviembre de 2026, America/Guatemala.
+## Validación integrada — 3 de noviembre de 2026
+
+Base exacta: `de2282ed7b9d3fe2928c0aa9cc2c6a17d8456ed2`, idéntica a
+`origin/main` después de `git fetch origin --prune`. La rama fue
+`feat/brian-ui-docs`; antes de validar estaba limpia y cuatro commits por delante
+de su remoto histórico.
+
+### PostgreSQL y suite actual
+
+Se reutilizó un clúster PostgreSQL 17.11 descartable bajo `/tmp`, accesible solo
+por un socket Unix privado. Se crearon dos bases separadas: `habits_ui_test` para
+la interacción y `habits_suite_test` para pytest. No se leyó ni modificó `.env`,
+ni se conectó a una base compartida.
+
+En `habits_ui_test` se instalaron `sql/fase1/inicializar.sql`, la ampliación
+`db-backend-upgrade`, la cuenta demo local autorizada y
+`sql/datos_ejemplo/cargar_demo.psql`. La revisión de datos devolvió diez reservas
+sin cruces, cuarenta inventarios y ochenta y un lotes iniciales. La suite completa
+de esta versión se ejecutó una vez:
+
+```text
+215 passed in 47.37s
+0 failed
+0 skipped
+```
+
+Después de la única corrección se ejecutó la regresión dirigida de permisos:
+
+```text
+1 passed in 0.80s
+```
+
+### Interacciones reales en Firefox
+
+Firefox 158.0.1 se ejecutó en modo headless y fue controlado por Marionette. No
+se usaron stubs ni se sustituyeron los clics por peticiones HTTP. Con sesión real
+y el JavaScript publicado se comprobó:
+
+- login, cuenta, dashboard y navegación por los nueve módulos;
+- alta y búsqueda de `Cliente Navegador Local`, historial, preferencia y observación;
+- tres reservas separadas: una confirmada, una cancelada y una completada mediante
+  llegada; una cuarta solicitud traslapada fue rechazada sin crear registro;
+- inventario, alertas, recepción de cinco unidades y producción de una unidad;
+- una venta válida por Q 26.00 y otra con cantidad imposible rechazada por stock;
+- permisos de administrador, gerente y mesero; el mesero no vio inventario o
+  producción, recibió 403 al intentar inventario y sí abrió ventas;
+- menú colapsable a 720 px y tabla con desplazamiento interno: viewport 720 px,
+  cuerpo 708 px, contenedor 480 px y tabla 672 px.
+
+La base confirmó los efectos, no solo los mensajes de la página: el cliente quedó
+con una preferencia y una observación; sus reservas terminaron una en cada estado
+`confirmada`, `cancelada` y `completada`, y la llegada produjo una visita. La demo
+tenía catorce ventas y quedó con quince después de la venta válida; el rechazo por
+stock no creó una venta ni cambios parciales. También quedaron trece producciones
+y ochenta y tres lotes después de la producción y la recepción.
+
+### Reportes y gráficas
+
+Para `2026-11-01` incluido y `2026-12-01` excluido, las funciones definitivas y
+la interfaz coincidieron:
+
+| Métrica | Antes | Después de operar en Firefox |
+|---|---:|---:|
+| Unidades del top de productos | 28 | 29 |
+| Importe del top | Q 696.00 | Q 722.00 |
+| Visitas del top frecuente | 12 | 13 |
+| Reservas de Sucursal 1 | 4 | 6 |
+| Ventas de Sucursal 1 | 7 | 8 |
+| Importe de Sucursal 1 | Q 316.00 | Q 342.00 |
+
+El cliente creado apareció con una reserva confirmada y una completada. Sucursal 2
+se conservó en cuatro reservas, siete ventas y Q 476.00. Las gráficas HTML mostraron
+los mismos valores; por ejemplo, el producto afectado llegó a seis unidades y las
+barras de Sucursal 1 mostraron seis reservas y ocho ventas. También se comprobaron
+cuatro estados vacíos para enero de 1990 y el mensaje de rango invertido.
+
+### Hallazgo y corrección
+
+La cuenta del gerente mostraba **Ver reportes**, aunque `/reportes` está limitado a
+administradores y devolvía 403. Se ajustó únicamente la condición de presentación
+en `app/templates/auth/cuenta.html` y se añadió una aserción de regresión. No se
+modificaron autenticación, SQL ni servicios de negocio.
+
+### Capturas locales
+
+Las imágenes de `docs/capturas/` corresponden a Firefox y PostgreSQL locales, no a
+Railway. Usan exclusivamente los datos ficticios de esta revisión:
+
+- `01-dashboard-local.png`
+- `02-cliente-historial-local.png`
+- `03-reservas-local.png`
+- `04-inventario-alertas-local.png`
+- `05-ventas-local.png`
+- `06-reportes-local.png`
+- `07-reportes-vacio-local.png`
+- `08-rango-invalido-local.png`
+- `09-menu-movil-local.png`
+
+Railway sigue sin desplegarse. Falta que Andrew revise la instalación inicial,
+credenciales normales, endurecimiento, respaldo y autorización; después se debe
+crear el servicio, instalar la base una vez, generar el dominio y repetir salud,
+login, navegación, reportes y cierre de sesión sobre HTTPS.
+
+## Evidencia anterior — 2 de noviembre de 2026
+
+Esta sección conserva la revisión de la interfaz y reportes previa a las pantallas
+operativas de `8be147d` y al cargador completo de `de2282e`.
 
 ## Entorno aislado
 
@@ -137,8 +243,8 @@ navegador visible sigue siendo opcional para aprobación estética subjetiva, no
 para suplir evidencia funcional. El servidor, Firefox, la base y las capturas
 temporales se detuvieron y eliminaron al finalizar.
 
-## Límites
+## Límites de aquella revisión
 
-No se modificaron el SQL de negocio, autenticación ni servicios de Andrew,
-Chris o Rodrigo. Tampoco se implementaron pantallas operativas, Railway,
-capturas definitivas o la demo final.
+En aquella revisión no se modificaron el SQL de negocio, autenticación ni servicios
+de Andrew, Chris o Rodrigo. Todavía no se habían implementado las pantallas
+operativas, Railway, las capturas locales actuales o la demo integral.
