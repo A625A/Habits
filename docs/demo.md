@@ -1,8 +1,8 @@
 # Recorrido de presentación
 
 Duración aproximada: 8–10 minutos. Usar una base de práctica instalada según el
-[README](../README.md), con `cargar_demo.psql` y un administrador normal. No hace
-falta Railway: abrir `http://127.0.0.1:5000` con Flask en ejecución.
+[README](../README.md), con `cargar_demo.psql` y un administrador normal. Abrir
+`iniciar.bat` y entrar en `http://127.0.0.1:5059` para la demostración local.
 
 ## Preparación
 
@@ -63,4 +63,4 @@ son normales: no representan ventas confirmadas.
 
 Adjuntar en Canvas el repositorio y el modelo/DER según el formato solicitado por
 el docente. Confirmar la inscripción del grupo y el turno de presentación.
-El alojamiento central remoto queda pendiente de la autorización para Railway.
+La demostración se realiza en la computadora con la aplicación y PostgreSQL locales.

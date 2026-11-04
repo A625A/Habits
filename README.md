@@ -10,15 +10,38 @@ auditoría automática y los cinco reportes de la consigna.
 - [Modelo y DER de las 18 tablas](docs/DER.md).
 - [API y permisos](docs/api.md).
 - [SQL explicado y ejemplos ejecutables](docs/sql.md).
-- [Recorrido de presentación](docs/demo.md) y [verificaciones](docs/verificacion.md).
+- [Recorrido de presentación y comprobaciones](docs/demo.md).
+
+## Abrirlo en esta computadora
+
+Hacer doble clic en **iniciar.bat**. Se inicia PostgreSQL si hace falta y se abre
+**http://127.0.0.1:5059**. Dejar abierta la ventana mientras se usa el sistema;
+**Ctrl + C** detiene la aplicación. Los datos quedan guardados en `habits_local`.
+La cuenta de demostración local es **usuario `admin`, contraseña `123`**.
+
+Desde la terminal de VS Code también se puede usar:
+
+```powershell
+.\.venv\Scripts\python.exe run.py
+```
+
+La configuración de esta computadora está en `.env`, que no se sube a Git.
+`DATABASE_URL` contiene la conexión con una cuenta propia sin permisos de superusuario.
+`SECRET_KEY` conserva la sesión y `HABITS_DEMO_LOGIN=1` habilita el acceso de ejemplo.
+`HABITS_PORT` define el puerto web (5059). Si `HABITS_PGDATA` y `HABITS_PG_CTL`
+están configurados, el iniciador enciende ese clúster existente usando `HABITS_PGPORT`.
+Si PostgreSQL ya funciona como servicio, se pueden omitir esas tres últimas variables.
+El arranque no instala tablas ni crea cuentas ni repite la carga de datos.
+
+Los pasos siguientes son para preparar **otra computadora** desde cero.
 
 ## Requisitos
 
 - Python 3.12 o posterior.
-- PostgreSQL 17, incluida la extensión `btree_gist`, con `initdb`, `pg_ctl`,
+- PostgreSQL 17 o 18, incluida la extensión `btree_gist`, con `initdb`, `pg_ctl`,
   `createuser`, `createdb` y `psql` en el PATH.
-- Git y un navegador con JavaScript. Bootstrap 5.3.3 se carga desde jsDelivr;
-  los estilos y el menú móvil requieren conexión a internet.
+- Git y un navegador con JavaScript. Bootstrap 5.3.3 está incluido en
+  `app/static/vendor/bootstrap`; los estilos y el menú funcionan sin internet.
 
 Los comandos siguientes son para Linux, macOS o Windows con WSL. En macOS se puede
 instalar PostgreSQL con `brew install postgresql@17` y agregar
@@ -143,19 +166,19 @@ inventario. La carga completa ya la incluye; no hace falta ejecutar ambas.
 ## 5. Ejecutar y usar
 
 ```bash
-python -m flask --app app run --host 127.0.0.1 --port 5000
+python run.py
 ```
 
-Abrir [Habits local](http://127.0.0.1:5000), iniciar sesión con el administrador y
+Abrir [Habits local](http://127.0.0.1:5059), iniciar sesión con el administrador y
 entrar al módulo desde Inicio. Para verificar conectividad:
 
 ```bash
-curl --fail http://127.0.0.1:5000/health
-curl --fail http://127.0.0.1:5000/health/db
+curl --fail http://127.0.0.1:5059/health
+curl --fail http://127.0.0.1:5059/health/db
 ```
 
 `/health/db` comprueba la conexión; no sustituye la instalación del esquema.
-También se puede iniciar con `gunicorn --bind 127.0.0.1:8000 wsgi:app`.
+En Windows, `iniciar.bat` usa el entorno `.venv` de esta carpeta.
 
 | Acción | Administrador | Gerente | Mesero |
 |---|---|---|---|
@@ -213,7 +236,7 @@ lugar de omitirse. Nunca usar una base con datos importantes para las pruebas.
 
 Se cubren HTTP, autenticación, permisos, CSRF, instalación, carga repetible,
 restricciones, reportes, concurrencia, FEFO, vencimientos, auditoría y COMMIT/ROLLBACK.
-La [verificación](docs/verificacion.md) distingue la suite del recorrido en navegador.
+El [guion de demostración](docs/demo.md) permite comprobar los flujos desde el navegador.
 
 ## Detener y reanudar PostgreSQL
 
@@ -222,17 +245,9 @@ pg_ctl -D .local/postgres stop -m fast
 pg_ctl -D .local/postgres -l .local/postgres.log -o "-h 127.0.0.1 -p 55432 -k '$PWD/.local/socket'" start
 ```
 
-## Entrega y Railway
+## Entrega local
 
 El repositorio contiene la aplicación, el DER y la carga reproducible. Falta la
 entrega manual del enlace y documentación en Canvas y la presentación del grupo.
 El historial de Andrew, Chris, Brian y Rodrigo se conserva sin reescribir commits;
 los aportes se consultan en Git.
-
-Railway no está desplegado. Se conservan `railway.json`, `wsgi.py` y Gunicorn.
-Para una publicación posterior habrá que configurar PostgreSQL, instalar el esquema,
-crear un administrador normal, definir `DATABASE_URL`, `SECRET_KEY` y
-`HABITS_ENV=production`, comprobar HTTPS y ejecutar
-`gunicorn --bind 0.0.0.0:$PORT wsgi:app`. Antes de exposición pública quedan por
-validar límites de intentos de login, limpieza de sesiones expiradas y backups con
-restauración. No incluir migraciones ni datos demo en el comando de arranque.

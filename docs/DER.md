@@ -590,6 +590,6 @@ tablas y validan el estado final de la transacción, no una fila intermedia.
 9. Vistas y consultas de reportes; procedimientos aprobados para demostración SQL.
 10. Carga reproducible pequeña en el orden de FK y pruebas de COMMIT/ROLLBACK.
 
-Las reglas de visitas están explicadas en la [decisión de diseño](adr/0001-visitas-independientes-de-reservas-y-ventas.md).
+Una reserva puede originar como máximo una visita; una visita puede tener varias ventas.
 Los ejemplos de índices, vistas, CTE, funciones, procedimientos, triggers y transacciones
-están en [SQL aplicado](sql.md). La cobertura ejecutada se registra en [verificación](verificacion.md).
+están en [SQL aplicado](sql.md). Las pruebas se ejecutan siguiendo el [README](../README.md#6-pruebas).
