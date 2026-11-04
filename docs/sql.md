@@ -1,9 +1,6 @@
-# SQL avanzado aplicado al backend de Habits
+# SQL aplicado a Habits
 
-Esta guía cubre los cinco temas pedidos para la presentación con los objetos
-existentes de Fase 1 y su integración HTTP de Fase 2. No agrega tablas, índices,
-vistas o funciones para demostrar teoría. Los scripts están listos para `psql`
-sobre el esquema instalado; los resultados dependen de los datos de esa base.
+Ejemplos del esquema real para explicar y ejecutar durante la presentación.
 
 ## Ejecutar las consultas
 
@@ -48,7 +45,7 @@ Usar `CREATE INDEX` cuando una consulta frecuente y medida filtra/ordena columna
 sin cobertura adecuada y el beneficio compensa espacio y mantenimiento de
 escrituras. Comparar antes/después con volumen representativo y estadísticas
 actualizadas; revisar primero `pg_indexes` para evitar duplicados. Habits ya tiene
-índices pertinentes y esta fase no produjo evidencia que justifique otro. Por eso
+índices pertinentes y no hay evidencia que justifique otro. Por eso
 no incluye un `CREATE INDEX` adicional para ejecutar por rutina.
 [Referencia: índices](https://www.postgresql.org/docs/17/indexes.html).
 
@@ -65,8 +62,7 @@ sede; `compras` agrega ventas e importe por separado, luego las une a sucursales
 Así, una visita con varias ventas sigue contando una vez. Unir primero todas las
 filas de visitas con ventas por sede multiplicaría conteos/importes. El `WITH`
 organiza estas agregaciones en una sola consulta, sin crear tablas intermedias.
-Esta consulta sirve para explicar los datos del backend; no crea un endpoint de
-reportes de una fase posterior.
+
 
 ## 3. FUNCTION y PROCEDURE
 
@@ -90,8 +86,7 @@ al confirmar. No se puede llamar un procedimiento como si fuera una función en 
 | POST `/ventas` | `registrar_venta` | Guarda detalles/precios y consume stock completo |
 | POST `/inventario/recepciones` | `registrar_recepcion` | Crea un lote con saldo igual a lo recibido |
 
-Los cuatro primeros se reutilizan de Fase 1. Recepción es la única nueva operación
-SQL: evita conceder escritura directa de saldos al rol de operaciones. La función
+La recepción evita conceder escritura directa de saldos al rol de operaciones. La función
 interna `consumir_receta` implementa FEFO; no se llama desde Flask ni se publica al
 rol operativo. SQL parametrizado separa valores de instrucciones en todas las rutas.
 
@@ -154,16 +149,6 @@ sus propios datos en esquemas separados; no necesitan cargar ejemplos en la base
 de uso diario. Las cantidades siguientes corresponden al catálogo ficticio sin
 modificaciones; no representan recetas comerciales.
 
-### Qué hace cada procedimiento
-
-| Objeto | Explicación para la presentación |
-|---|---|
-| `registrar_produccion` | Revisa al empleado, consume los ingredientes de la receta y registra las unidades de pan o postre preparadas. |
-| `registrar_venta` | Guarda la compra y sus detalles; descuenta ingredientes si es bebida o unidades preparadas si es pan o postre. Conserva el precio cobrado. |
-| `registrar_llegada` | Crea la visita y marca la reserva como completada dentro de la misma operación. |
-| `cancelar_reserva` | Libera el horario al cancelar la reserva, conservando el registro para consultar su historia. |
-| `registrar_recepcion` | Agrega un lote de ingredientes con cantidad inicial y disponible iguales. Requiere la ampliación SQL de Fase 2. |
-
 `consumir_receta` es una función de apoyo que usan producción y venta; no es un
 procedimiento adicional que deba ejecutar el empleado. Multiplica cada cantidad
 de la receta por las unidades pedidas. Busca lotes de la sucursal que todavía
@@ -224,7 +209,7 @@ En una base exclusiva de práctica terminada en `_test`, con el esquema completo
 los datos de ejemplo y un administrador activo, ejecutar como propietario:
 
 ```bash
-psql -X -h 127.0.0.1 -p 55432 -U habits_app -d habits_test -W -v usuario_id=SU_ID -f sql/datos_ejemplo/ensayar_produccion_venta.psql
+psql -X -h 127.0.0.1 -p 55432 -U habits_test -d habits_test -W -v usuario_id=SU_ID -f sql/datos_ejemplo/ensayar_produccion_venta.psql
 ```
 
 Adaptar conexión e ID. El ensayo usa `DEMO-01`, `HAB-09` y `HAB-01`: prepara dos

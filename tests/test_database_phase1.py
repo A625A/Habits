@@ -520,6 +520,37 @@ def test_inicializacion_desde_base_vacia(database_url):
         assert conn.execute("SELECT count(*) FROM usuarios").fetchone()[0] == 0
 
 
+def test_inicializacion_no_confunde_tablas_de_otro_esquema(db, database_url):
+    from uuid import uuid4
+
+    from psycopg.conninfo import make_conninfo
+
+    original = db.execute("SELECT current_schema()").fetchone()[0]
+    nuevo = "test_" + uuid4().hex
+    db.execute(
+        "INSERT INTO productos(codigo,nombre,categoria,precio) "
+        "VALUES ('EXISTENTE','Producto existente','bebida',31)"
+    )
+    db.execute(sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(nuevo)))
+    try:
+        url = make_conninfo(database_url, options=f"-csearch_path={nuevo},{original}")
+        result = inicializar(url)
+        assert result.returncode == 0, result.stderr
+        assert (
+            db.execute(
+                "SELECT count(*) FROM information_schema.tables "
+                "WHERE table_schema=%s AND table_type='BASE TABLE'",
+                (nuevo,),
+            ).fetchone()[0]
+            == 18
+        )
+        with psycopg.connect(url) as conn:
+            assert conn.execute("SELECT count(*) FROM productos").fetchone()[0] == 12
+        assert db.execute("SELECT codigo,precio FROM productos").fetchall() == [("EXISTENTE", 31)]
+    finally:
+        db.execute(sql.SQL("DROP SCHEMA {} CASCADE").format(sql.Identifier(nuevo)))
+
+
 def test_inicializacion_rechaza_esquema_parcial_sin_borrarlo(auth_app, database_url):
     with psycopg.connect(database_url, autocommit=True) as conn:
         conn.execute("CREATE TABLE productos (nombre text)")

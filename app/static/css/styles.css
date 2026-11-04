@@ -145,18 +145,6 @@ body {
   background: #e8f1e4;
 }
 
-.status-pending {
-  color: #72501f;
-  background: #f8ebce;
-}
-
-.pending-module {
-  padding: 1.25rem;
-  background: #fff;
-  border: 1px dashed #cbbbaa;
-  border-radius: .75rem;
-}
-
 .auth-wrap {
   max-width: 38rem;
   margin-inline: auto;

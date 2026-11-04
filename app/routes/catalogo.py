@@ -1,4 +1,4 @@
-"""Catálogo compartido, sin recetas o cantidades inventadas."""
+"""Catálogo compartido y recetas."""
 
 from typing import Any
 

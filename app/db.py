@@ -72,7 +72,7 @@ def seed_db_command() -> None:
 @click.command("db-upgrade")
 @with_appcontext
 def upgrade_db_command() -> None:
-    """Aplicar ampliaciones de Andrew sobre el core existente sin borrar datos."""
+    """Instalar sesiones y auditoría sobre el esquema básico."""
     try:
         _run_sql_scripts(["01_auth.sql", "06_auditoria.sql"])
     except psycopg.Error as error:
@@ -80,13 +80,13 @@ def upgrade_db_command() -> None:
             f"No se pudo actualizar el esquema (SQLSTATE {error.sqlstate}). "
             "Verificá conexión y ejecutá db-init primero en una base nueva."
         ) from None
-    click.echo("Ampliaciones de Andrew aplicadas.")
+    click.echo("Sesiones y auditoría instaladas.")
 
 
 @click.command("db-backend-upgrade")
 @with_appcontext
 def upgrade_backend_command() -> None:
-    """Habilitar el backend sobre la Fase 1 instalada, sin cargar datos operativos."""
+    """Habilitar operaciones sobre el esquema completo, sin cargar datos."""
     try:
         _run_sql_scripts(["fase2/10_backend.sql"])
     except psycopg.Error as error:
@@ -94,4 +94,4 @@ def upgrade_backend_command() -> None:
             f"No se pudo habilitar el backend (SQLSTATE {error.sqlstate}). "
             "Instalá primero sql/fase1/inicializar.sql como propietario."
         ) from None
-    click.echo("Permisos y recepción de Fase 2 habilitados.")
+    click.echo("Permisos y recepción de lotes habilitados.")

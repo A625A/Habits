@@ -2,7 +2,9 @@
 BEGIN;
 SELECT pg_advisory_xact_lock(3088,2);
 
-SELECT to_regclass('sucursales') IS NULL AND to_regclass('usuarios') IS NULL AS crear_core \gset
+-- La instalación pertenece al esquema actual, aunque search_path incluya otros.
+SELECT to_regclass(format('%I.sucursales', current_schema())) IS NULL
+   AND to_regclass(format('%I.usuarios', current_schema())) IS NULL AS crear_core \gset
 \if :crear_core
 \ir ../01_core.sql
 \endif
@@ -20,12 +22,12 @@ BEGIN
     IF numero NOT IN (0,14) THEN
         RAISE EXCEPTION 'Esquema parcial: revisar antes de integrar; no se borraron datos';
     END IF;
-    IF numero=14 AND obj_description(to_regclass('productos'),'pg_class') IS DISTINCT FROM 'Habits Fase 1 v1' THEN
+    IF numero=14 AND obj_description(to_regclass(format('%I.productos',current_schema())),'pg_class') IS DISTINCT FROM 'Habits Fase 1 v1' THEN
         RAISE EXCEPTION 'Esquema distinto a la versión aprobada; no sobrescribir automáticamente';
     END IF;
 END;
 $$;
-SELECT to_regclass('productos') IS NULL AS ampliar \gset
+SELECT to_regclass(format('%I.productos', current_schema())) IS NULL AS ampliar \gset
 \if :ampliar
 \ir 10_catalogo.sql
 \ir 20_atencion.sql

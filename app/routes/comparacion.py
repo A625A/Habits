@@ -1,4 +1,4 @@
-"""Andrew: datos del reporte. Brian conserva su Blueprint de presentación."""
+"""Consulta de personal por sucursal, conservada por compatibilidad."""
 
 from flask import Blueprint, g
 

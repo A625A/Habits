@@ -1,4 +1,4 @@
-"""Producción transaccional mediante el procedimiento aprobado de Fase 1."""
+"""Producción transaccional de panes y postres."""
 
 from typing import Any
 

@@ -1,16 +1,10 @@
 # Habits Cafetería
 
-Leer docs/fase-1-andrew.md y docs/contratos.md antes de cambiar código.
-Para autenticación/auditoría del 26, leer también docs/andrew-26-octubre.md y
-docs/integracion-26-octubre.md; actualizan los límites históricos de Fase 1.
-La excepción demo y la autorización de publicación posterior están en docs/demo-local-andrew.md.
-Respetar propietarios y alcance. No hacer push, merge ni despliegues sin autorización.
-Usar SQL parametrizado, transacciones explícitas y nunca versionar secretos.
-
-## Agent skills
-
-### Issue tracker
+Leer README.md, CONTEXT.md, docs/DER.md y docs/api.md antes de cambiar código.
+Las decisiones del dominio están en docs/adr/. Ver docs/agents/domain.md.
 Las tareas se siguen en GitHub Issues. Ver docs/agents/issue-tracker.md.
 
-### Domain docs
-Contexto único: CONTEXT.md y docs/adr/. Ver docs/agents/domain.md.
+Usar SQL parametrizado, transacciones explícitas y bases de prueba aisladas.
+Conservar restricciones, permisos, auditoría e historial de operaciones.
+Nunca versionar secretos ni reescribir commits de otros integrantes.
+No hacer push, merge ni despliegues sin autorización del usuario.

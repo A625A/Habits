@@ -1,11 +1,8 @@
-# Issue tracker: GitHub
+# GitHub Issues
 
-Las tareas del equipo viven en GitHub Issues del remoto origin.
-Consultar con `gh issue view NUMERO --comments` y listar con `gh issue list`.
-La especificación de la base es `docs/fase-1-andrew.md`; la entrega actual de Andrew
-se especifica en `docs/andrew-26-octubre.md`.
-La excepción de acceso demo y su publicación están en `docs/demo-local-andrew.md`.
-Crear o comentar issues solo con autorización explícita; usar `--body-file`
-para textos multilínea. No publicar tareas automáticamente durante el setup.
+Las tareas se consultan en el remoto origin con `gh issue list` y
+`gh issue view NUMERO --comments`. El alcance funcional está en README.md,
+docs/DER.md y docs/api.md.
 
-PRs as a request surface: no.
+Crear o comentar issues solo con autorización explícita. Para texto multilínea,
+usar `--body-file`. Las PR no son la fuente de tareas de este proyecto.

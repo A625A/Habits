@@ -1,31 +1,6 @@
-# Fase 2 — Backend funcional
+# API y permisos
 
-Implementación del pedido de Andrew del 1 de noviembre de 2026, conservado en
-[fase-2-backend-solicitud.md](fase-2-backend-solicitud.md). Base fija: `aa229aa` de
-`origin/main`. Rama de trabajo: `feat/fase-2-backend`. Esta fase implementa HTTP/JSON;
-no agrega pantallas, estilos, dashboard ni despliegue. Conserva las 18 tablas,
-el catálogo de doce productos y sus precios iniciales; no carga datos operativos.
-
-## Instalación explícita
-
-Con Fase 1 ya instalada y el entorno virtual activo:
-
-```bash
-flask --app app db-backend-upgrade
-flask --app app run --host 127.0.0.1 --port 5000
-```
-
-El comando aplica `sql/fase2/10_backend.sql` en una transacción como propietario,
-es repetible y no toca filas existentes. Si falla, no deja permisos parcialmente
-aplicados. Para una base nueva, instalar primero `sql/fase1/inicializar.sql` según
-[implementacion-bd-fase-1.md](implementacion-bd-fase-1.md). Crear el primer
-administrador mediante el comando existente `create-admin`; no habilitar demo.
-No se ejecutan migraciones durante el arranque de Flask.
-
-Se agrega `registrar_recepcion`: una recepción crea un lote con cantidad inicial y
-saldo iguales. No había una operación SQL pública de recepción en Fase 1. Se
-reutilizan `registrar_llegada`, `cancelar_reserva`, `registrar_produccion` y
-`registrar_venta`, sin duplicar consumo, FEFO, restricciones o transición de estados.
+Instalación, usuarios y ejecución: [README](../README.md).
 
 Cada petición de negocio abre una transacción explícita, establece
 `SET LOCAL ROLE habits_operaciones` y fija el actor desde la sesión autenticada.
@@ -37,9 +12,9 @@ si una operación falla. Al terminar se restablece automáticamente el rol origi
 
 La conexión configurada mantiene el acceso existente necesario para autenticar al
 personal y gestionar sesiones; debe tener membresía de `habits_operaciones`.
-No usar un superusuario del clúster. Esta fase reduce el rol durante las operaciones
+No usar un superusuario del clúster. La aplicación reduce el rol durante las operaciones
 de negocio; no rediseña la autenticación ni separa sus credenciales en otro pool.
-Si se ejecuta posteriormente el antiguo `db-upgrade` o el instalador de Fase 1,
+Si se ejecuta posteriormente el antiguo `db-upgrade` o el instalador del esquema completo,
 reaplicar `db-backend-upgrade` para restablecer los atributos de los triggers.
 
 ## Permisos HTTP
@@ -96,7 +71,7 @@ de nombre. Varias compras pueden pertenecer a la misma visita.
 ## Endpoints
 
 Las colecciones `/clientes`, `/reservas`, `/ventas`, `/producciones` admiten también
-la barra final. No se incorporan los alias HTML antiguos `/crear` de Chris.
+la barra final.
 
 | Método y ruta | Cuerpo o filtros |
 |---|---|
@@ -139,7 +114,7 @@ la barra final. No se incorporan los alias HTML antiguos `/crear` de Chris.
 | GET/POST `/ventas` | GET `sucursal_id`, `visita_id`, `desde` inclusivo, `hasta` exclusivo, paginación; POST descrito abajo |
 | GET `/ventas/{id}` | Cabecera, líneas, cantidades, precios históricos y total |
 
-Las reservas nuevas se crean confirmadas como en Chris; el servidor calcula los
+Las reservas nuevas se crean confirmadas; el servidor calcula los
 90 minutos. La exclusión y la capacidad se comprueban en PostgreSQL, también entre
 solicitudes concurrentes. La llegada registra el momento real y no permite enviar
 `atendida_en`. Una visita sin reserva no equivale a un sistema de ocupación de mesas.
@@ -165,81 +140,8 @@ vencimiento local; desde el día siguiente se excluyen. No se expone descarte ni
 manual de saldos. Las recetas compartidas se reemplazan con bloqueo del producto,
 para que producción/venta no vean una configuración parcial.
 
-## Probar mediante HTTP
 
-Arrancar el servidor local y usar una cuenta real creada con `create-admin` o
-`/auth/register`. Este ejemplo Python estándar mantiene cookies y pide la clave
-sin imprimirla. Solo consulta; sustituir la última petición por la mutación JSON
-que se quiera probar con datos operativos reales.
-
-```python
-import getpass
-import json
-from http.cookiejar import CookieJar
-from urllib.parse import urlencode
-from urllib.request import HTTPCookieProcessor, Request, build_opener
-
-base = "http://127.0.0.1:5000"
-http = build_opener(HTTPCookieProcessor(CookieJar()))
-
-
-def get(path):
-    with http.open(base + path, timeout=10) as response:
-        return json.load(response)
-
-
-token = get("/auth/csrf")["csrf_token"]
-credentials = urlencode(
-    {"email": input("Correo: "), "password": getpass.getpass("Contraseña: "), "csrf_token": token}
-).encode()
-with http.open(Request(base + "/auth/login", data=credentials), timeout=10):
-    pass
-csrf = get("/auth/csrf")["csrf_token"]
-print(get("/catalogo/productos"))
-
-# Ejemplo de envío: payload debe contener datos e IDs operativos verificados.
-# req = Request(base + "/ventas", data=json.dumps(payload).encode(),
-#     headers={"Content-Type": "application/json", "X-CSRF-Token": csrf})
-# with http.open(req, timeout=10) as response:
-#     print(json.load(response))
-```
-
-## Reutilización de Chris
-
-Se inspeccionaron los dos archivos en `origin/feat/chris-reservas`, commit
-`f27bb8e849b2c9293cf6c146cbc836bc5ba905dd`. Se adaptaron la búsqueda `ILIKE`, el alta
-parametrizada de clientes, las consultas de historial con sucursal/mesa, preferencias
-y observaciones, y el listado de reservas con filtros. Se conserva la creación
-confirmada y el flujo de cancelación, ahora mediante el procedimiento definitivo.
-
-Se sustituyeron formularios, flash, redirecciones y respuestas HTML por JSON;
-se añadieron autenticación, CSRF, permisos de sucursal, actor, paginación y errores
-controlados. La duración viene del servidor y las reglas relacionales de PostgreSQL.
-El historial añade visitas reales y compras del esquema final. Durante la implementación inicial no se fusionó ni se hizo cherry-pick de su rama.
-La integración posterior a `main` conserva sus commits originales mediante merge
-normal con resolución selectiva; ver [registro de integración](integracion-main-fase-2.md). No se incorporaron `sql/02_clientes_reservas.sql`,
-`sql/reportes_clientes.sql` ni sus tres plantillas.
-
-## Datos operativos pendientes y alcance
-
-Antes de operar hacen falta mesas reales por sucursal, ingredientes/unidades,
-recetas con cantidades verificadas, cantidades de referencia, recepciones/lotes
-con vencimientos reales, producción disponible y cuentas de personal con su sede.
-Los doce productos y precios iniciales ya están en Fase 1; no se inventan recetas
-ni saldos para hacer funcionar las ventas. Sin receta o stock, la operación falla
-atómicamente. No se alteró la base de desarrollo para probar este backend.
-
-Se conservan los cinco reportes SQL. Las interfaces de presentación/reportes,
-las siguientes fases y Railway no se desarrollan en esta entrega. El cierre inicial
-fue local; la posterior integración y publicación autorizada en `main` se documenta
-en [integracion-main-fase-2.md](integracion-main-fase-2.md). La evidencia de verificación y revisión está en
-[verificacion-backend-fase-2.md](verificacion-backend-fase-2.md).
-
-
-## Presentación de SQL avanzado
-
-Los cinco temas —índices/EXPLAIN ANALYZE, vistas/CTE, funciones/procedimientos,
-triggers y transacciones/ACID— están explicados con consultas ejecutables en
-[sql-aplicado-fase-2.md](sql-aplicado-fase-2.md). Incluye un script de consultas de
-solo lectura y un ensayo de venta con ROLLBACK restringido a una base de pruebas.
-No añade objetos SQL para demostrar conceptos ya resueltos.
+`GET /reportes` muestra los cinco reportes académicos únicamente al administrador.
+El endpoint anterior `GET /reportes/sucursales` se conserva por compatibilidad:
+solo cuenta personal y permite al gerente consultar su sede. Sus campos operativos
+son nulos; no es el reporte de ventas y reservas de la entrega.

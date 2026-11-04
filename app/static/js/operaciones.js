@@ -618,7 +618,7 @@
         panel.replaceChildren();
         for (const [key, rows] of Object.entries(data))
           if (Array.isArray(rows)) {
-            panel.append(node("h3", label(key), "h5"), renderTable(rows, rows.length ? Object.keys(rows[0]).filter(k => !k.endsWith("_id") || k === "sucursal_id" || k === "ingrediente_id") : []));
+            panel.append(node("h3", label(key), "h5"), renderTable(rows, rows.length ? Object.keys(rows[0]).filter(k => !k.endsWith("_id") || ["sucursal_id", "ingrediente_id", "producto_id"].includes(k)) : []));
           } $("page-label").textContent = "Alertas completas";
         return;
       }

@@ -1,110 +1,66 @@
-# Guion de demostración de Brian
+# Recorrido de presentación
 
-Este recorrido cubre la interfaz compartida, el dashboard y los cinco reportes.
-Ahora se puede completar con las pantallas operativas conectadas desde el inicio,
-siguiendo el recorrido de abajo. Railway continúa siendo una preparación separada.
+Duración aproximada: 8–10 minutos. Usar una base de práctica instalada según el
+[README](../README.md), con `cargar_demo.psql` y un administrador normal. No hace
+falta Railway: abrir `http://127.0.0.1:5000` con Flask en ejecución.
 
 ## Preparación
 
-Antes de presentar:
+1. Iniciar sesión y abrir Reportes con el mes de la carga. Comprobar las cinco
+   secciones: en la base recién cargada hay 14 ventas, 12 visitas y Q792 vendidos.
+2. Desde Personal, crear un gerente y un mesero de DEMO-01 con contraseñas privadas.
+3. Tener abiertas [DER](DER.md), [SQL aplicado](sql.md) y una conexión psql a la
+   base de práctica. No mostrar `.env` ni contraseñas en la presentación.
 
-1. Confirmar que `/health` y `/health/db` responden 200 en el entorno elegido.
-2. Tener una cuenta administradora activa. En Railway debe ser una cuenta normal
-   creada con `create-admin`; la cuenta rápida de demo es exclusivamente local.
-3. Identificar el intervalo real que contiene las ventas, visitas y reservas de
-   demostración, y el mes de vencimiento de los lotes. No asumir fechas fijas.
-4. Para una base de práctica, ejecutar `sql/datos_ejemplo/cargar_demo.psql` con
-   `-v usuario_id=SU_ID` y la conexión correspondiente. Incluye la carga base y
-   las operaciones ficticias de ambas sucursales. El comando antiguo
-   `cargar.psql` sigue limitado a mesas, recetas e inventario.
-5. Abrir `/reportes` y confirmar que las cinco secciones contienen datos. Elegir
-   el mes de la carga; repetirla no cambia las fechas ni duplica las ventas.
+## Demostración
 
-## Recorrido
+1. **Login y permisos.** Entrar como administrador. Mostrar Personal y los módulos.
+   Explicar que los permisos se comprueban en el servidor, aunque se escriba la URL.
+2. **Cliente e historial.** Registrar «Cliente presentación» con un teléfono,
+   agregar una preferencia y una observación. Buscarlo y abrir Ver historial.
+3. **Mesas y reservas.** Crear una mesa número 99 de cuatro personas en DEMO-01.
+   Reservarla para ese cliente mañana a las 10:00. Intentar otra a las 10:30:
+   debe rechazarse. Cancelar la primera y crear la de las 10:30: ahora se permite.
+   Registrar llegada y mostrar la visita; no crear otra para la misma atención.
+4. **Inventario.** Abrir Ingredientes y registrar «Insumo presentación», unidad g.
+   En Inventario configurarlo para DEMO-01 con referencia 100. Recibir 15 g con
+   vencimiento de hoy. En Alertas debe aparecer por stock bajo y vencimiento.
+   Recibir además 100 g vencidos ayer: quedan visibles, pero el disponible sigue en 15 g.
+5. **Receta y producción.** Ver la receta del croissant de guayaba y queso crema.
+   Producir dos unidades con vencimiento de mañana. Comparar ingredientes antes y
+   después: baja harina 120 g, mantequilla 50 g, guayaba 40 g y queso crema 40 g.
+6. **Venta.** Registrar una visita para llevar del cliente. Venderle un latte de
+   cardamomo y un croissant: con precios iniciales son Q48. Ver detalle y comprobar
+   el descuento de ingredientes del latte y de un croissant terminado. El pan no
+   vuelve a consumir su receta. Intentar vender 999999 croissants: se rechaza sin
+   dejar venta ni descuentos parciales.
+7. **Reportes.** Mostrar top 10 productos, top 10 clientes por visitas, top 5 reservas
+   con preferencias, alertas mensuales y comparación de sucursales. Explicar que
+   una visita puede tener dos compras; las reservas canceladas no suman. Consultar
+   un período vacío y después un rango invertido para mostrar la validación.
+8. **Roles.** Cerrar sesión y entrar como gerente: inventario de su sede, sin Personal
+   ni reportes globales. Entrar como mesero: clientes, reservas y ventas, sin
+   inventario ni producción. Cerrar sesión al terminar.
 
-### 1. Inicio de sesión
+El recorrido agrega datos. Para repetirlo en la misma base, usar otro cliente,
+mesa y nombre de ingrediente, o preparar otra base aislada; no borrar ventas históricas.
+Las capturas de referencia en `capturas/` corresponden a una validación local anterior.
 
-- Abrir `<URL_PUBLICA>/auth/login`.
-- Explicar que la sesión y los permisos se validan en el servidor y que los POST
-  están protegidos con CSRF.
-- Iniciar sesión con la cuenta administradora preparada para la presentación.
+## SQL para defender en clase
 
-### 2. Dashboard
+Ejecutar `\i sql/fase2/consultas_presentacion.sql` desde psql en la raíz del proyecto.
+Muestra índices y EXPLAIN, vistas de stock y ventas, CTE, funciones y triggers,
+y las últimas operaciones de auditoría. Es de solo lectura.
 
-- Mostrar `/` y la navegación compartida.
-- Abrir el menú colapsable si se presenta en ancho reducido.
-- Abrir Operación para recorrer las pantallas permitidas para la cuenta actual.
+Para demostrar ROLLBACK con producción y venta, preparar datos de ejemplo en una
+base de práctica cuyo nombre termine en `_test` y ejecutar
+`\set usuario_id SU_ID` (el ID del administrador de esa base) y luego
+`\i sql/datos_ejemplo/ensayar_produccion_venta.psql`. El script toma los productos
+del catálogo, comprueba restricciones diferidas y revierte todo. Los huecos de las secuencias
+son normales: no representan ventas confirmadas.
 
-### 2.1. Operación diaria
+## Entrega manual
 
-En una base de práctica con los datos de ejemplo:
-
-1. Registrar un cliente con teléfono o correo. Consultar su historial y agregar
-   una preferencia u observación.
-2. Crear una reserva eligiendo sucursal, mesa, cliente, horario y personas.
-   Usar Registrar llegada para generar su visita sin duplicarla. Para una compra
-   sin reserva, registrar una visita desde Visitas si se quiere identificarla.
-3. Consultar las existencias y registrar una recepción desde Inventario. Mostrar
-   la vista de alertas y sus fechas de vencimiento.
-4. Revisar una receta y producir panes desde Producción. Para editar una receta,
-   esperar a que se carguen todos sus ingredientes antes de guardar.
-5. Registrar una venta con varios productos. Asociarla a la visita correspondiente
-   o dejarla anónima; elegir para llevar sin mesa o consumo local. Mostrar el total
-   calculado y abrir Ver detalle para consultar los precios cobrados.
-6. Volver a inventario y productos preparados para comprobar los descuentos.
-   Abrir los reportes del mismo período para ver las operaciones recién guardadas.
-
-### 3. Los cinco reportes
-
-Abrir `/reportes`. Para `desde`, elegir el inicio del período que contiene los
-datos preparados; para `hasta`, usar el día posterior al último dato o el primer
-día del mes siguiente, porque el límite es exclusivo. Para `mes`, elegir el mes
-de vencimiento de los lotes que se mostrarán.
-
-1. **Productos más vendidos.** Mostrar unidades e importe calculados desde ventas
-   reales, incluido el total del top presentado.
-2. **Clientes frecuentes.** Explicar que cuenta visitas reales, no reservas ni
-   nombres inventados.
-3. **Clientes con más reservas.** Comparar confirmadas, completadas y total; mostrar
-   las preferencias registradas cuando existan.
-4. **Inventario.** Mostrar sucursal, ingrediente, stock actual, referencia, alerta,
-   vencimiento y saldo de lote. Aclarar que el mes filtra vencimientos y que el
-   stock mostrado es actual, no una reconstrucción histórica.
-5. **Sucursales.** Comparar reservas, ventas e importes agregados por separado para
-   evitar multiplicaciones por joins.
-
-Como comprobación breve, consultar un período sin operaciones y mostrar los estados
-vacíos. Después invertir las fechas para enseñar el mensaje de validación y volver
-al intervalo representativo.
-
-### 4. Cierre
-
-- Volver a la cuenta y cerrar sesión.
-- Mostrar la URL pública solamente cuando Railway haya generado y validado el
-  dominio. Hasta entonces usar el marcador `<URL_PUBLICA>`; no inventar una URL.
-- Distinguir las comprobaciones locales de las que se hagan después en Railway.
-
-## Capturas de validación
-
-Las capturas actuales están en `docs/capturas/` y corresponden a PostgreSQL y
-Firefox locales. Muestran dashboard, historial, reservas, alertas, ventas, los cinco
-reportes, estado vacío, rango inválido y menú a 720 px. No contienen contraseñas ni
-datos personales y no deben presentarse como evidencia de Railway.
-
-Después del despliegue autorizado todavía se deben tomar o repetir, con datos
-definitivos, login, cuenta y cierre de sesión, `/health/db`, dominio público, filtros
-de la presentación y las vistas representativas anteriores. No mostrar variables
-ni credenciales.
-
-## Dependencias para la demostración integral
-
-- **Chris:** datos representativos de clientes, preferencias, reservas y visitas.
-- **Rodrigo:** recepciones, producción y ventas representativas.
-- **Andrew:** autorizar y ejecutar o supervisar la instalación inicial de PostgreSQL,
-  crear el primer administrador de producción, revisar el endurecimiento pendiente
-  y autorizar el despliegue público.
-
-`cargar.psql` cubre mesas, ingredientes, recetas, configuraciones y lotes.
-`cargar_demo.psql` añade también clientes, preferencias, reservas, visitas,
-producciones y ventas ficticias en ambas sucursales. Las capturas finales deben
-corresponder al entorno y al período elegidos para la presentación.
+Adjuntar en Canvas el repositorio y el modelo/DER según el formato solicitado por
+el docente. Confirmar la inscripción del grupo y el turno de presentación.
+El alojamiento central remoto queda pendiente de la autorización para Railway.

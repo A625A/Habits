@@ -1,20 +1,13 @@
-# DER completo de Habits — diseño aprobado
+# Modelo de datos y DER
 
-**Estado: aprobado por Andrew el 31 de octubre de 2026.** Se autorizó implementar
-la base completa y después los precios iniciales propuestos de los doce productos.
-La implementación y sus instrucciones están en [implementacion-bd-fase-1.md](implementacion-bd-fase-1.md).
-El nombre del archivo se conserva para mantener los enlaces.
-
-Fuentes y diagnóstico: [diseno-bd-completa.md](diseno-bd-completa.md).
-Ejemplos de clase: [sql-explicado-fase-1.md](sql-explicado-fase-1.md).
+PostgreSQL, 18 tablas. El esquema se instala siguiendo el [README](../README.md).
 
 ## Resumen del modelo
 
-Se proponen **18 tablas**: cuatro existentes, cinco adaptadas del trabajo de Chris
-y nueve nuevas. No se añaden tablas de pagos, proveedores, entregas, pedidos abiertos,
+El modelo contiene **18 tablas**. No se añaden tablas de pagos, proveedores, entregas, pedidos abiertos,
 lealtad, transferencias entre sucursales ni versiones de recetas.
 
-- Se conserva el core, las sesiones y la auditoría sin rediseñar el login.
+- Se conserva las sucursales, los usuarios, las sesiones y la auditoría.
 - Una visita representa una atención de un cliente identificado; varias ventas
   pueden pertenecer a esa misma visita.
 - Una venta anónima puede existir sin visita. No suma frecuencia de clientes.
@@ -24,9 +17,6 @@ lealtad, transferencias entre sucursales ni versiones de recetas.
   cantidad producida, cantidad restante y vencimiento.
 - La receta se representa mediante las filas producto–ingrediente. Con una receta
   actual por producto no hace falta una tabla adicional `recetas` uno a uno.
-
-Estas reglas y su traducción a atributos, claves, relaciones e integridad fueron
-aprobadas. La autorización cubre la base de datos de Fase 1, no backend ni otra fase.
 
 ## Convenciones del diseño
 
@@ -41,13 +31,13 @@ aprobadas. La autorización cubre la base de datos de Fase 1, no backend ni otra
   `NUMERIC(14,3)`. Unidades vendidas/producidas: enteros positivos.
 - Texto de nombres/códigos no puede estar vacío tras quitar espacios.
 - Dos sucursales y doce productos se verifican en la carga académica y sus pruebas.
-  No se propone un trigger global para impedir para siempre una decimotercera fila.
+  No se usa un trigger global para impedir para siempre una decimotercera fila.
 - Las filas históricas se conservan; se desactivan catálogos. Se mantienen las
   excepciones existentes de sesiones y bitácora descritas más abajo.
 
 ## Diccionario completo de tablas
 
-### 1. sucursales — existente
+### 1. sucursales
 
 `sucursal_id BIGINT PK`; `codigo VARCHAR(30) UNIQUE`; `nombre VARCHAR(120)`;
 `direccion TEXT ?`; `activa BOOLEAN DEFAULT true`; `creada_en TIMESTAMPTZ`.
@@ -55,7 +45,7 @@ aprobadas. La autorización cubre la base de datos de Fase 1, no backend ni otra
 Se conserva su estructura. No borrar una sucursal con operaciones vinculadas.
 Desactivarla impide nuevas operaciones, pero no elimina su historia.
 
-### 2. usuarios — existente
+### 2. usuarios
 
 `usuario_id BIGINT PK`; `sucursal_id BIGINT FK → sucursales`;
 `nombre VARCHAR(120)`; `email VARCHAR(254)`; `password_hash TEXT`;
@@ -67,15 +57,14 @@ No se introduce FK compuesta usuario/sucursal: trasladar a un empleado no debe
 cambiar ni invalidar sus ventas históricas. Su autorización actual se comprueba
 al registrar la operación, no se deduce de una relación histórica.
 
-### 3. sesiones — existente, infraestructura
+### 3. sesiones
 
 `token_hash TEXT PK`; `usuario_id BIGINT FK → usuarios ON DELETE CASCADE`;
 `creada_en TIMESTAMPTZ`; `expira_en TIMESTAMPTZ`.
 
-Se conserva `expira_en > creada_en` y el comportamiento actual. Esta fase no añade
-funcionalidades de autenticación. Se incluye para que el DER refleje toda la BD.
+Se conserva `expira_en > creada_en` y el comportamiento actual. Se incluye para que el DER refleje toda la BD.
 
-### 4. auditoria — existente
+### 4. auditoria
 
 `auditoria_id BIGINT PK`; `fecha TIMESTAMPTZ`; `esquema TEXT`; `tabla TEXT`;
 `registro_id TEXT`; `operacion TEXT`; `usuario_id BIGINT ?`; `actor_db TEXT`;
@@ -86,17 +75,17 @@ funcionalidades de autenticación. Se incluye para que el DER refleje toda la BD
 siguen una lista de campos permitidos; no incluyen contraseñas ni tokens.
 No se audita la propia bitácora ni sesiones. No es protección contra el dueño SQL.
 
-### 5. mesas — adaptar Chris
+### 5. mesas
 
 `mesa_id BIGINT PK`; `sucursal_id BIGINT FK → sucursales`;
 `numero_mesa INTEGER`; `capacidad INTEGER`; `activa BOOLEAN DEFAULT true`.
 
 `UNIQUE(sucursal_id, numero_mesa)`; número y capacidad positivos.
 `UNIQUE(mesa_id, sucursal_id)` permite FK compuestas que aseguran pertenencia.
-Se propone omitir `ubicacion`: el diseño interior no es requisito de la consigna.
+El diseño interior de las mesas queda fuera del alcance.
 No se borra la mesa si tiene historia; no se cambia su sucursal si está referenciada.
 
-### 6. clientes — adaptar Chris
+### 6. clientes
 
 `cliente_id BIGINT PK`; `nombre VARCHAR(120)`; `telefono VARCHAR(30) ?`;
 `email VARCHAR(254) ?`; `activo BOOLEAN DEFAULT true`;
@@ -108,7 +97,7 @@ familiares pueden compartirlo. Las compras anónimas no crean clientes ficticios
 El personal busca y reutiliza clientes; no se fusionan automáticamente por nombre
 o teléfono. Desactivar conserva visitas, reservas y ventas asociadas.
 
-### 7. productos — nueva
+### 7. productos
 
 `producto_id BIGINT PK`; `codigo VARCHAR(30) UNIQUE`; `nombre VARCHAR(120)`;
 `categoria VARCHAR(20)`; `precio NUMERIC(12,2)`;
@@ -120,7 +109,7 @@ El precio es común para ambas sucursales; no se añaden promociones o variantes
 Cambiarlo no altera los precios de detalles de ventas anteriores.
 La categoría no debe cambiar una vez que tenga producción o ventas.
 
-### 8. ingredientes — nueva
+### 8. ingredientes
 
 `ingrediente_id BIGINT PK`; `nombre VARCHAR(120)`; `unidad VARCHAR(10)`;
 `activo BOOLEAN DEFAULT true`.
@@ -129,7 +118,7 @@ Nombre único sin distinguir mayúsculas. Una unidad base por ingrediente:
 `g`, `ml` o `unidad`. Las recetas y lotes usan esa misma unidad.
 No se implementan conversiones; no se cambia la unidad de un ingrediente utilizado.
 
-### 9. receta_ingrediente — nueva, relación N:M
+### 9. receta_ingrediente
 
 `receta_ingrediente_id BIGINT PK`; `producto_id BIGINT FK → productos`;
 `ingrediente_id BIGINT FK → ingredientes`; `cantidad NUMERIC(14,3)`.
@@ -142,7 +131,7 @@ deben exigir receta no vacía y validar todos sus ingredientes. Si un ingredient
 inactivo o sin saldo suficiente, se rechaza la operación; nunca se omite de la receta.
 El catálogo puede cargarse antes de su receta dentro del orden de inicialización.
 
-### 10. inventario_ingrediente — nueva, configuración por sucursal
+### 10. inventario_ingrediente
 
 `inventario_id BIGINT PK`; `sucursal_id BIGINT FK → sucursales`;
 `ingrediente_id BIGINT FK → ingredientes`;
@@ -155,7 +144,7 @@ Si ya tiene lotes, sucursal_id e ingrediente_id no se cambian: hacerlo reinterpr
 el ingrediente o la sede de todas sus existencias sin romper ninguna FK. La cantidad
 de referencia sí puede ajustarse, con auditoría.
 
-### 11. lotes_ingrediente — nueva, existencia real
+### 11. lotes_ingrediente
 
 `lote_id BIGINT PK`; `inventario_id BIGINT FK → inventario_ingrediente`;
 `usuario_id BIGINT FK → usuarios`; `recibido_en TIMESTAMPTZ`;
@@ -171,7 +160,7 @@ día local. Desde el día siguiente el lote no es utilizable aunque conserve can
 FEFO: fecha de vencimiento ascendente, luego lote_id para desempatar.
 Los lotes vencidos permanecen visibles para su descarte/auditoría.
 
-### 12. producciones — nueva, también lote terminado
+### 12. producciones
 
 `produccion_id BIGINT PK`; `sucursal_id BIGINT FK → sucursales`;
 `producto_id BIGINT FK → productos`; `usuario_id BIGINT FK → usuarios`;
@@ -185,7 +174,7 @@ vencimiento y FEFO de terminados, sin añadir otra tabla de stock.
 Validar categoría mediante función/trigger o procedimiento, no un CHECK que consulte
 otra tabla. Una vista agrupa los lotes utilizables por sucursal/producto.
 
-### 13. preferencias_cliente — adaptar Chris
+### 13. preferencias_cliente
 
 `preferencia_id BIGINT PK`; `cliente_id BIGINT FK → clientes`;
 `producto_id BIGINT FK → productos`; `nota_preferencia VARCHAR(150) ?`.
@@ -195,7 +184,7 @@ sin producto pertenecen a observaciones. Una preferencia no equivale a una compr
 inferida: se registra explícitamente. Los productos se desactivan, no se dejan FK
 en NULL borrando el catálogo histórico.
 
-### 14. reservas — adaptar Chris
+### 14. reservas
 
 `reserva_id BIGINT PK`; `sucursal_id BIGINT FK → sucursales`;
 `mesa_id BIGINT`; `cliente_id BIGINT FK → clientes`;
@@ -223,7 +212,7 @@ el CHECK evita que se contradigan. La sucursal redundante se protege con FK comp
 El control de reserva no es un sistema adicional de ocupación de mesas en tiempo real
 para visitas espontáneas; ese comportamiento no se presume implementado.
 
-### 15. visitas — nueva
+### 15. visitas
 
 `visita_id BIGINT PK`; `cliente_id BIGINT FK → clientes`;
 `sucursal_id BIGINT FK → sucursales`; `reserva_id BIGINT ? UNIQUE`;
@@ -247,7 +236,7 @@ para visitas espontáneas; ese comportamiento no se presume implementado.
 - No usar UNIQUE(cliente_id, fecha): una persona puede volver el mismo día.
   Al añadir otra venta de la misma atención se reutiliza visita_id.
 
-### 16. observaciones_cliente — adaptar Chris
+### 16. observaciones_cliente
 
 `observacion_id BIGINT PK`; `cliente_id BIGINT FK → clientes`;
 `visita_id BIGINT ?`; `usuario_id BIGINT FK → usuarios`;
@@ -257,7 +246,7 @@ Observación no vacía. Puede ser general del cliente o sobre una visita concret
 FK `(visita_id, cliente_id) → visitas(visita_id, cliente_id)` impide atribuir la
 observación a una visita de otra persona. No contiene datos de pagos ni credenciales.
 
-### 17. ventas — nueva
+### 17. ventas
 
 `venta_id BIGINT PK`; `sucursal_id BIGINT FK → sucursales`;
 `usuario_id BIGINT FK → usuarios`; `visita_id BIGINT ?`;
@@ -275,11 +264,11 @@ observación a una visita de otra persona. No contiene datos de pagos ni credenc
   de sus detalles, evitando total desactualizado.
 - Cada venta confirmada tiene al menos un detalle. Se valida al terminar la
   transacción mediante un constraint trigger diferido; una FK sola no lo garantiza.
-- Venta y detalles son históricos: el procedimiento de venta será el punto de
+- Venta y detalles son históricos: el procedimiento de venta es el punto de
   escritura, sin operaciones de corrección posterior. El rol SQL habits_operaciones usa procedimientos sin DML directo sobre estas tablas; las FK por sí solas
   no impiden que una conexión privilegiada modifique ventas.
 
-### 18. detalle_ventas — nueva, relación N:M
+### 18. detalle_ventas
 
 `detalle_venta_id BIGINT PK`; `venta_id BIGINT FK → ventas`;
 `producto_id BIGINT FK → productos`; `cantidad INTEGER`;
@@ -480,7 +469,7 @@ Cada operación completa es una transacción. FEFO se aplica a los lotes utiliza
 de la sucursal y se bloquean filas en orden común; si falta cualquier ingrediente
 o producto, se revierten todos los descuentos y registros de esa operación.
 
-| Regla | Mecanismo propuesto |
+| Regla | Mecanismo |
 |---|---|
 | No traslapes, incluso con dos reservas simultáneas | EXCLUDE GiST por mesa/rango y extensión btree_gist |
 | Personas no exceden capacidad | Trigger de validación que consulta y bloquea la mesa; al cambiar capacidad, validar reservas afectadas |
@@ -495,8 +484,8 @@ o producto, se revierten todos los descuentos y registros de esa operación.
 | Auditoría de cambios confirmados | AFTER INSERT/UPDATE/DELETE, dentro de la transacción del cambio |
 
 Evitar disparar consumo desde múltiples lugares: el procedimiento consume, el
-trigger audita y valida; el futuro backend no descuenta el mismo stock otra vez.
-Las firmas y los permisos de los procedimientos se detallan en la guía de implementación.
+trigger audita y valida; Flask no descuenta el mismo stock otra vez.
+Las firmas y los permisos de los procedimientos se detallan en [API](api.md).
 
 ## Borrado y actualización de relaciones
 
@@ -516,10 +505,10 @@ Las firmas y los permisos de los procedimientos se detallan en la guía de imple
 - Una reducción de capacidad se rechaza si invalida una reserva no cancelada que
   aún no terminó. No se reescribe la capacidad histórica de reservas pasadas.
 
-## Índices propuestos con un propósito concreto
+## Índices
 
-No repetir índices ya creados por PK, UNIQUE o EXCLUDE. Los siguientes son candidatos
-a verificar con EXPLAIN sobre los datos de prueba, no una promesa de rendimiento:
+No repetir índices ya creados por PK, UNIQUE o EXCLUDE. Los siguientes índices están implementados;
+EXPLAIN permite comprobar su uso con los datos disponibles:
 
 | Índice | Consulta |
 |---|---|
@@ -534,8 +523,7 @@ a verificar con EXPLAIN sobre los datos de prueba, no una promesa de rendimiento
 | detalle_ventas(producto_id) | Ranking y referencias desde productos |
 | observaciones_cliente(cliente_id, fecha_creacion) | Historial de observaciones |
 
-Las otras FK se revisarán según sus consultas y acciones de borrado. No se crean
-índices sobre cada columna por obligación académica.
+
 
 ## Vistas y reportes
 
@@ -602,86 +590,6 @@ tablas y validan el estado final de la transacción, no una fila intermedia.
 9. Vistas y consultas de reportes; procedimientos aprobados para demostración SQL.
 10. Carga reproducible pequeña en el orden de FK y pruebas de COMMIT/ROLLBACK.
 
-En la copia existente no se repite db-init ni se eliminan datos: inicializar.sql
-aplica una ampliación aditiva. Las entidades del SQL de Chris se adaptaron desde
-su rama conservando trazabilidad; no se hizo merge de sus rutas.
-
-## Segunda ronda — aceptada por Andrew
-
-8. Permitir ventas anónimas sin visita; clientes identificados con al menos un contacto.
-   La visita cuenta al titular de la atención, no a cada acompañante.
-9. Una reserva admite cero o una visita y también existen visitas sin reserva.
-   Registrar la llegada crea la visita real y completa la reserva vinculada,
-   conservando su bloqueo de noventa minutos. La frecuencia cuenta solo visitas
-   reales; las reservas confirmadas/completadas se cuentan en sus propios reportes.
-   Una visita admite varias ventas sin multiplicar su frecuencia.
-10. Una única fuente de stock por lote, totales en vistas; producción también es lote
-    terminado con vencimiento y FEFO. Consumible hasta el final del día de vencimiento.
-11. Una receta actual por producto, sin tabla cabecera ni versiones, usando g/ml/unidad;
-    cambios afectan futuras operaciones, no consumos pasados.
-12. Desactivar catálogos y clientes; conservar operaciones. Preferencias siempre sobre
-    productos; observaciones libres y opcionalmente vinculadas a una visita.
-13. Mantener dos sucursales y doce productos en la carga académica, verificados por
-    pruebas, sin agregar triggers que impongan un máximo global permanente de filas.
-
-Las respuestas y el DER completo fueron aprobados. Se implementa exclusivamente
-la base de Fase 1; no hay autorización para avanzar a otra fase.
-
-## Comprobación de cobertura de la consigna
-
-Revisión documental contra la consigna original, páginas 2–3, y la propuesta de
-Habits. «Cubierto» significa que el modelo tiene datos, relaciones y mecanismos
-previstos; no significa que los casos de uso ya estén implementados o probados.
-
-| Requisito | Soporte en las 18 tablas | Resultado del diseño |
-|---|---|---|
-| Usuarios y roles | usuarios, sesiones, sucursales | Core conservado; permisos efectivos y login fuera de este trabajo |
-| Reservas y disponibilidad | mesas, clientes, reservas, visitas | Capacidad, 90 minutos, EXCLUDE, estados y llegada real |
-| Inventario de ingredientes | ingredientes, inventario_ingrediente, lotes_ingrediente, receta_ingrediente, productos, producciones | Stock por sede, FEFO, vencimiento y umbral del 15 % |
-| Historial de clientes | clientes, visitas, reservas, preferencias_cliente, observaciones_cliente | Asistencia independiente de reservas/ventas, preferencias y notas |
-| Control automático de cambios | auditoria y triggers de tablas de negocio | INSERT/UPDATE/DELETE en la transacción original, sin secretos |
-| Top 10 productos vendidos | productos, ventas, detalle_ventas | Sumar unidades de ventas confirmadas |
-| Top 10 clientes frecuentes | clientes, visitas | Contar visitas reales, sin multiplicarlas por sus ventas |
-| Top 5 reservas y preferencias | clientes, reservas, preferencias_cliente, productos | Contar primero reservas, después incorporar preferencias |
-| Reporte mensual de insumos | inventario_ingrediente, lotes_ingrediente, ingredientes | Stock actual y vencimientos del mes; no histórico reconstruido |
-| Comparación de sucursales | sucursales, reservas, ventas, detalle_ventas | Agregaciones separadas, incluir sedes sin operaciones |
-| Menú común e inventarios separados | productos, receta_ingrediente, inventario_ingrediente, producciones | Dos sucursales y doce productos iniciales; sin máximos globales |
-| DER y carga reproducible | Este diccionario y orden de dependencias | Diseño documentado; scripts y carga reproducibles implementados |
-
-Los límites aceptados del 15 % sobre referencia y del reporte mensual se conservan
-como interpretación acordada con Andrew; no se atribuyen al profesor como aclaración.
-La rúbrica también exige aplicación, reportes ejecutables y presentación: disponer
-del DER no completa esas entregas ni la implementación de la base.
-
-## Conceptos de Base de Datos 1 en este diseño
-
-| Concepto | Aplicación real prevista |
-|---|---|
-| Índices | Agenda por sede/fecha, historial por cliente y búsqueda FEFO; comprobar con EXPLAIN |
-| Vistas | Stock utilizable y total de ventas calculados desde sus filas fuente |
-| CTE | Agregar visitas, reservas y ventas por separado antes de combinar resultados |
-| Funciones | Alerta del 15 %, validación entre tablas y consumo reutilizable FEFO |
-| Procedimientos | Registrar llegada, cancelar reserva, producir y registrar una venta completa |
-| Triggers | Auditoría, capacidad, coherencia de relaciones y verificaciones diferidas |
-| Transacciones | Llegada + visita + cambio de estado; consumo + operación + auditoría, todo o nada |
-
-Los ejemplos SQL explicados están en [sql-explicado-fase-1.md](sql-explicado-fase-1.md).
-La implementación SQL no añade backend. La validación en PostgreSQL real incluye
-conflictos entre conexiones, además de casos de una sesión.
-
-## Criterios de verificación de la implementación
-
-- Crear toda la BD desde cero y ampliar el core existente sin pérdida de datos.
-- Rechazar FK huérfanas, reservas cruzadas de sede, capacidad insuficiente y traslapes.
-- Aceptar dos reservas consecutivas de 90 minutos; cancelar libera el intervalo.
-- Una reserva origina como máximo una visita; dos ventas no duplican su frecuencia.
-- Una reserva confirmada sin llegada suma en reservas, pero no en frecuencia;
-  completar por llegada no permite otra reserva superpuesta en los 90 minutos.
-- Una visita sin reserva y una compra identificada para llevar cuentan una vez;
-  una venta anónima no crea visita ni cliente.
-- Un lote vencido no se consume; cantidades nunca negativas; FEFO con desempate estable.
-- Producir y vender sin doble descuento; fallos revierten operación y bitácora juntas.
-- Precios históricos constantes tras cambiar catálogo; venta sin detalles rechazada.
-- Dos sucursales, doce productos, cinco consultas explicables con datos de prueba.
-
-La evidencia ejecutada está en [verificacion-bd-fase-1.md](verificacion-bd-fase-1.md).
+Las reglas de visitas están explicadas en la [decisión de diseño](adr/0001-visitas-independientes-de-reservas-y-ventas.md).
+Los ejemplos de índices, vistas, CTE, funciones, procedimientos, triggers y transacciones
+están en [SQL aplicado](sql.md). La cobertura ejecutada se registra en [verificación](verificacion.md).

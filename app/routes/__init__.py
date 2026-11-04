@@ -1,4 +1,4 @@
-"""Blueprints HTTP; cada módulo conserva sus rutas y propietario."""
+"""Registro de rutas HTTP."""
 
 from flask import Flask
 
