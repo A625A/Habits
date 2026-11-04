@@ -245,9 +245,4 @@ pg_ctl -D .local/postgres stop -m fast
 pg_ctl -D .local/postgres -l .local/postgres.log -o "-h 127.0.0.1 -p 55432 -k '$PWD/.local/socket'" start
 ```
 
-## Entrega local
 
-El repositorio contiene la aplicación, el DER y la carga reproducible. Falta la
-entrega manual del enlace y documentación en Canvas y la presentación del grupo.
-El historial de Andrew, Chris, Brian y Rodrigo se conserva sin reescribir commits;
-los aportes se consultan en Git.
