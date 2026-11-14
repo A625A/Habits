@@ -1,0 +1,39 @@
+erDiagram
+    direction LR
+    dim_fecha ||--o{ fact_ventas : "fecha / 1:N"
+    dim_producto ||--o{ fact_ventas : "producto_id / 1:N"
+    dim_sucursal ||--o{ fact_ventas : "sucursal_id / 1:N"
+    dim_tipo_venta ||--o{ fact_ventas : "tipo_venta / 1:N"
+
+    fact_ventas {
+        bigint detalle_id PK
+        bigint ticket_id "ID global de ticket"
+        date fecha FK
+        bigint producto_id FK
+        bigint sucursal_id FK
+        varchar tipo_venta FK
+        integer cantidad "positiva"
+        numeric precio_unitario "historico GTQ"
+        numeric importe "generado: cantidad x precio"
+    }
+    dim_fecha {
+        date fecha PK
+        smallint dia "generado"
+        smallint mes "generado"
+        smallint trimestre "generado"
+        smallint anio "generado"
+    }
+    dim_producto {
+        bigint producto_id PK
+        varchar codigo UK
+        varchar nombre
+        varchar categoria
+    }
+    dim_sucursal {
+        bigint sucursal_id PK
+        varchar codigo UK
+        varchar nombre
+    }
+    dim_tipo_venta {
+        varchar tipo_venta PK "local o llevar"
+    }
