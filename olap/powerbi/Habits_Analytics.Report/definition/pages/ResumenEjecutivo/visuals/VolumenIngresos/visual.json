@@ -1,16 +1,131 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.1.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "VolumenIngresos",
   "position": {
     "x": 1036,
     "y": 640,
-    "width": 540,
-    "height": 308,
     "z": 12,
+    "height": 308,
+    "width": 540,
     "tabOrder": 12
   },
   "visual": {
     "visualType": "scatterChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "v_ventas_detalle"
+                    }
+                  },
+                  "Property": "Producto etiqueta"
+                }
+              },
+              "queryRef": "v_ventas_detalle.Producto etiqueta",
+              "active": true
+            }
+          ]
+        },
+        "Tooltips": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "v_ventas_detalle"
+                    }
+                  },
+                  "Property": "Ventas distintas"
+                }
+              },
+              "queryRef": "v_ventas_detalle.Ventas distintas"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "v_ventas_detalle"
+                    }
+                  },
+                  "Property": "Ticket promedio"
+                }
+              },
+              "queryRef": "v_ventas_detalle.Ticket promedio"
+            }
+          ]
+        },
+        "X": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "v_ventas_detalle"
+                    }
+                  },
+                  "Property": "Unidades vendidas"
+                }
+              },
+              "queryRef": "v_ventas_detalle.Unidades vendidas",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "v_ventas_detalle"
+                    }
+                  },
+                  "Property": "Ingresos totales"
+                }
+              },
+              "queryRef": "v_ventas_detalle.Ingresos totales"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "categoryAxis": [
+        {
+          "properties": {
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "valueAxis": [
+        {
+          "properties": {
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     "visualContainerObjects": {
       "title": [
         {
@@ -26,13 +141,6 @@
               "expr": {
                 "Literal": {
                   "Value": "'Unidades e ingresos por producto'"
-                }
-              }
-            },
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "12"
                 }
               }
             },
@@ -68,154 +176,6 @@
                       "Value": "'#FFFFFF'"
                     }
                   }
-                }
-              }
-            },
-            "transparency": {
-              "expr": {
-                "Literal": {
-                  "Value": "0"
-                }
-              }
-            }
-          }
-        }
-      ]
-    },
-    "query": {
-      "queryState": {
-        "Category": {
-          "projections": [
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "v_ventas_detalle"
-                    }
-                  },
-                  "Property": "Producto etiqueta"
-                }
-              },
-              "queryRef": "v_ventas_detalle.Producto etiqueta"
-            }
-          ]
-        },
-        "X": {
-          "projections": [
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "v_ventas_detalle"
-                    }
-                  },
-                  "Property": "Unidades vendidas"
-                }
-              },
-              "queryRef": "v_ventas_detalle.Unidades vendidas"
-            }
-          ]
-        },
-        "Y": {
-          "projections": [
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "v_ventas_detalle"
-                    }
-                  },
-                  "Property": "Ingresos totales"
-                }
-              },
-              "queryRef": "v_ventas_detalle.Ingresos totales"
-            }
-          ]
-        },
-        "Tooltips": {
-          "projections": [
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "v_ventas_detalle"
-                    }
-                  },
-                  "Property": "Ventas distintas"
-                }
-              },
-              "queryRef": "v_ventas_detalle.Ventas distintas"
-            },
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "v_ventas_detalle"
-                    }
-                  },
-                  "Property": "Ticket promedio"
-                }
-              },
-              "queryRef": "v_ventas_detalle.Ticket promedio"
-            }
-          ]
-        }
-      }
-    },
-    "objects": {
-      "categoryAxis": [
-        {
-          "properties": {
-            "showAxisTitle": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "axisTitle": {
-              "expr": {
-                "Literal": {
-                  "Value": "'Unidades vendidas'"
-                }
-              }
-            },
-            "labelDisplayUnits": {
-              "expr": {
-                "Literal": {
-                  "Value": "1"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "valueAxis": [
-        {
-          "properties": {
-            "showAxisTitle": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "axisTitle": {
-              "expr": {
-                "Literal": {
-                  "Value": "'Ingresos (GTQ)'"
-                }
-              }
-            },
-            "labelDisplayUnits": {
-              "expr": {
-                "Literal": {
-                  "Value": "1"
                 }
               }
             }

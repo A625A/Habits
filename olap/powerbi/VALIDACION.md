@@ -1,7 +1,9 @@
 # Registro de Brian — 15 de noviembre de 2026
 
-**Avance verificable; entrega final pendiente.** No existe todavía un
-`Habits_Analytics.pbix` guardado y reabierto en Desktop. No hay una comparación
+**PBIX guardado y comprobado estructuralmente; entrega final pendiente.** Brian
+confirmó manualmente que cerró y reabrió `Habits_Analytics.pbix`, conservando las
+tarjetas, filtros y espacios de los gráficos. Se comprobó el archivo real y se
+leyeron las tablas, medidas y relación del modelo abierto. No hay una comparación
 aprobada SQL–Power BI ni resultados del dataset final. No se inventaron ventas,
 capturas o conclusiones de negocio para cubrir esas ausencias.
 
@@ -20,13 +22,15 @@ capturas o conclusiones de negocio para cubrir esas ausencias.
 | Datos persistentes | Consulta directa devuelve 0 hechos; calendario 365 días y dos tipos instalados por 01 | Sin ETL |
 | Acceso lector | `habits_powerbi` consulta las vistas; SELECT de detalle=true, USAGE de olap=false | Verificado con psql, no con Power BI |
 | Power BI Desktop | Instalador oficial con firma válida de Microsoft; salida 0; registro de Windows y ejecutable versión 2.159.1231.0 | Instalado |
-| Fuente editable | PBIP, modelo TMSL y definición PBIR de una página, cuatro tarjetas, tres filtros y cinco tipos de gráfico | Preparada |
-| Esquemas JSON | 21 archivos conformes a esquemas oficiales de Microsoft, mediante jsonschema 4.26.0 | Aprobado para estructura |
+| Fuente editable | PBIP, modelo TMSL y definición PBIR guardados por Desktop; informe JSON coincidente con el contenido del PBIX, fórmulas y consultas sin cambios | Sincronizada con el PBIX |
+| Esquemas JSON iniciales | Antes del guardado de Desktop, 21 archivos conformes a esquemas oficiales de Microsoft, mediante jsonschema 4.26.0 | Evidencia de la versión inicial; Desktop migró después sus esquemas |
 | Modelo TMSL | Biblioteca `Microsoft.AnalysisServices.Server.Tabular.Json.dll` de Desktop deserializa `model.bim`: 2 tablas | Aprobado para estructura |
 | Referencias y distribución | `comprobar_fuentes.ps1`: campos de todos los visuales existentes, relación activa N:1, orden mensual, 4 tarjetas/3 filtros/5 tipos, límites del lienzo e interacciones con destinos existentes | Aprobado para estructura |
 | Modelo abierto en Desktop | API local de Analysis Services devuelve las dos tablas y cuatro medidas; Calendario=Ready, detalle=NoData | Apertura de modelo verificada por API; conexión M pendiente |
 | DAX en motor de Desktop | `comparar_kpis.dax` ejecutado por ADOMD en la instancia local: cinco escenarios y doce meses con 0/0/0/BLANK | Aprobado solo sin datos; no acredita importación desde PostgreSQL |
-| PBIX y visuales | No control nativo de Desktop disponible en esta sesión; no se ha observado renderizado ni guardado de PBIX | Pendiente de Brian |
+| PBIX real | `Habits_Analytics.pbix`, 38,359 bytes, versión interna 1.32, contenedor sin errores CRC; DataModel no vacío y definición PBIR con 1 página, 4 tarjetas, 3 filtros y 5 tipos de gráfico | Comprobación estructural aprobada |
+| Cierre y reapertura | Brian confirma guardado desde Desktop y reapertura con tarjetas, filtros y espacios de los gráficos | Comprobación manual del usuario; no observación directa de la interfaz por esta sesión |
+| Modelo tras la reapertura | Lectura TOM del motor abierto: Calendario y v_ventas_detalle, las cuatro medidas con sus fórmulas, relación Calendario_Detalle activa; detalle=NoData y calendario=Ready | Modelo conservado; sin actualización final |
 | GitHub | Sesión activa ChenBrian833 y permiso push comprobados; rama subida y PR [#3](https://github.com/A625A/Habits/pull/3) creado hacia main | Borrador; sin merge |
 | Dump/restauración final | No hay dump final ni prueba de restauración identificados | Pendiente del equipo |
 
@@ -81,6 +85,35 @@ sus cifras no se atribuyen al dashboard.
    detalle está en NoData. **No prueba la consulta M, las credenciales del conector,
    una actualización, los visuales ni los resultados del dataset final.**
 
+## PBIX guardado y reabierto: evidencia separada de la validación de datos
+
+Brian guardó el archivo desde Power BI Desktop, lo cerró y lo volvió a abrir.
+Su confirmación manual indica que se conservan tarjetas, filtros y espacios de
+los gráficos. No se atribuye a esta sesión una inspección visual directa.
+
+Comprobaciones adicionales realizadas sobre el archivo:
+
+- Ruta: `olap/powerbi/Habits_Analytics.pbix`; tamaño: **38,359 bytes**.
+- SHA-256: `33a48b3adc371893224de5d02734142d9e4da9c69f01f0eff785f1cc34920abd`.
+- Contenedor ZIP legible, CRC correcto en todas las entradas; partes Version,
+  Content_Types XML válido, Metadata, Settings y DataModel presentes y no vacías.
+- Versión interna 1.32 y modelo embebido de 23,522 bytes. Este PBIX guarda el
+  informe en `Report/definition/` (PBIR); no necesita la parte antigua Report/Layout.
+- Una página «Resumen ejecutivo»; cuatro `card`, tres `slicer`, un `lineChart`,
+  `clusteredBarChart`, `donutChart`, `treemap` y `scatterChart`, más dos textos.
+- Los JSON del informe embebidos coinciden con las fuentes guardadas por Desktop.
+  El modelo fuente conserva las fórmulas y consultas anteriores; el comprobador
+  estructural pasa sobre la fuente actualizada.
+- Lectura por API local del modelo abierto tras la reapertura: dos tablas, cuatro
+  medidas correctas y relación activa. La partición de detalle continúa en NoData;
+  esta lectura no acredita la conexión M ni una actualización desde PostgreSQL.
+
+Se incluyen también los metadatos y la normalización que Desktop guardó en la
+fuente editable, para mantenerla alineada con el PBIX; no se incluyen cachés `.pbi`
+ni credenciales. La integridad del contenedor y la reapertura manual acreditan
+el archivo de avance; **no aprueban cifras, actualización ni interacciones con los
+10,000 tickets finales**.
+
 ## Protocolo para aprobar con los datos finales
 
 Después del ETL de Rodrigo, ejecutar primero SQL 03 como dueño, con el valor
@@ -120,9 +153,9 @@ categoría y tipo contra las consultas finales de `validar_dashboard.sql`.
 | Ticket multíproducto | Pendiente | Pendiente | No aprobado |
 | Ticket multicategoría o ausencia demostrada | Pendiente | Pendiente | No aprobado |
 
-También falta comprobar en Desktop:
+También falta comprobar en Desktop con los datos finales:
 
-- Una sola página, cuatro tarjetas, tres segmentadores y cinco tipos de gráficos.
+- Legibilidad de tarjetas, filtros, etiquetas y gráficos después de actualizar.
 - Línea cronológica con doce meses y valores sin ventas consistentes.
 - Barras descendentes, nombres legibles y tooltips; dona con ambos tipos.
 - Treemap con categoría y producto; dispersión con un punto por producto.
@@ -131,7 +164,7 @@ También falta comprobar en Desktop:
   promedios ni modifica los segmentadores desde gráficos.
 - Selecciones cruzadas, Ctrl/multiselección, borrado y restablecimiento de filtros.
 - Calendario marcado y relación 1:N activa con dirección única; IDs de texto.
-- Guardar **PBIX**, cerrar, reabrir y comprobar modelo, filtros y visuales.
+- Guardar el PBIX actualizado y repetir cierre/reapertura con los datos finales.
 - Exportación de tablero para Chris; dump final y restauración comprobada por el
   equipo. La prueba de restauración debe usar otra base nueva y repetir SQL 03.
 
@@ -146,11 +179,9 @@ commits existentes: `a2908cf`, `aef208b`, `5cff27b` y `5290d32`. Se subió la ra
 [PR #3](https://github.com/A625A/Habits/pull/3) como **borrador**, sin merge.
 Los cambios posteriores de este registro se envían a la misma rama y PR.
 
-El impedimento de autenticación del primer intento quedó resuelto. Continúan los
-pendientes de datos y Desktop de las secciones anteriores. El PBIX no existe aún
-en la ruta de entrega al revisar esta continuación; no se da por aprobado su
-guardado ni su cierre/reapertura. Se solicitó a Brian realizar los pasos exactos
-del [protocolo de guardado](README.md#guardar-y-comprobar-el-pbix-en-desktop).
-Las herramientas de esta sesión permiten leer el motor local, pero no controlar
-la ventana de Desktop ni ejecutar su acción Guardar como. No se sustituyó el
-PBIX con un archivo de otro formato.
+El impedimento de autenticación del primer intento quedó resuelto. Brian completó
+después el [protocolo de guardado](README.md#guardar-y-comprobar-el-pbix-en-desktop)
+y confirmó la reapertura manual. El PBIX real se incorpora a esta misma rama y PR,
+junto con su evidencia y las fuentes sincronizadas. Continúan pendientes el ETL
+de Rodrigo y las pruebas de actualización, cifras e interacciones con el dataset
+final; el PR debe permanecer en borrador. No se sustituyó el PBIX con otro formato.

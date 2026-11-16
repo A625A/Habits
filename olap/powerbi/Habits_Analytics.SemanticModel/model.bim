@@ -1,32 +1,46 @@
 {
-  "name": "Habits_Analytics",
-  "compatibilityLevel": 1600,
+  "compatibilityLevel": 1606,
   "model": {
-    "culture": "es-GT",
-    "defaultPowerBIDataSourceVersion": "powerBI_V3",
-    "sourceQueryCulture": "es-GT",
-    "dataAccessOptions": {
-      "legacyRedirects": true,
-      "returnErrorValuesAsNull": false
-    },
     "annotations": [
       {
         "name": "__PBI_TimeIntelligenceEnabled",
         "value": "0"
+      },
+      {
+        "name": "PBI_ProTooling",
+        "value": "[\"DevMode\"]"
       }
     ],
+    "culture": "es-GT",
+    "dataAccessOptions": {
+      "legacyRedirects": true,
+      "returnErrorValuesAsNull": false
+    },
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
     "expressions": [
       {
         "name": "Servidor",
+        "expression": "\"127.0.0.1:55440\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]",
         "kind": "m",
-        "expression": "\"127.0.0.1:55440\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]"
+        "lineageTag": "bafef0f7-9819-4fdd-9a2f-eb78a870ec91"
       },
       {
         "name": "BaseDatos",
+        "expression": "\"habits_olap\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]",
         "kind": "m",
-        "expression": "\"habits_olap\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]"
+        "lineageTag": "cec162cc-8e3d-4633-a2e6-9c0ecf9a4d93"
       }
     ],
+    "relationships": [
+      {
+        "name": "Calendario_Detalle",
+        "fromColumn": "fecha",
+        "fromTable": "v_ventas_detalle",
+        "toColumn": "Fecha",
+        "toTable": "Calendario"
+      }
+    ],
+    "sourceQueryCulture": "es-GT",
     "tables": [
       {
         "name": "v_ventas_detalle",
@@ -34,132 +48,152 @@
           {
             "name": "detalle_id",
             "dataType": "string",
+            "isHidden": true,
+            "lineageTag": "d1bf76e6-6a0e-483f-827b-692e66c6f222",
             "sourceColumn": "detalle_id",
-            "summarizeBy": "none",
-            "isHidden": true
+            "summarizeBy": "none"
           },
           {
             "name": "ticket_id",
             "dataType": "string",
+            "isHidden": true,
+            "lineageTag": "0ad1fa8e-b586-4fb7-8add-230e4c179511",
             "sourceColumn": "ticket_id",
-            "summarizeBy": "none",
-            "isHidden": true
+            "summarizeBy": "none"
           },
           {
             "name": "fecha",
-            "dataType": "dateTime",
-            "sourceColumn": "fecha",
-            "summarizeBy": "none",
-            "formatString": "dd/MM/yyyy",
             "annotations": [
               {
                 "name": "UnderlyingDateTimeDataType",
                 "value": "Date"
               }
-            ]
+            ],
+            "dataType": "dateTime",
+            "formatString": "dd/MM/yyyy",
+            "lineageTag": "d1c5ded3-f384-42ea-85af-a90e94dce3bd",
+            "sourceColumn": "fecha",
+            "summarizeBy": "none"
           },
           {
             "name": "producto_id",
             "dataType": "string",
+            "isHidden": true,
+            "lineageTag": "61534ed3-5cee-41d9-8117-1423bc9e78f0",
             "sourceColumn": "producto_id",
-            "summarizeBy": "none",
-            "isHidden": true
+            "summarizeBy": "none"
           },
           {
             "name": "codigo_producto",
             "dataType": "string",
+            "lineageTag": "b6548ac4-2b50-4fd0-9407-086b26c39582",
             "sourceColumn": "codigo_producto",
             "summarizeBy": "none"
           },
           {
             "name": "producto",
             "dataType": "string",
+            "lineageTag": "fbfd60b8-eacf-4008-9394-5fe93055fb22",
             "sourceColumn": "producto",
             "summarizeBy": "none"
           },
           {
             "name": "categoria",
             "dataType": "string",
+            "lineageTag": "adf1b610-71cd-48e3-8afd-378abb63acd7",
             "sourceColumn": "categoria",
             "summarizeBy": "none"
           },
           {
             "name": "sucursal_id",
             "dataType": "string",
+            "isHidden": true,
+            "lineageTag": "ab7a3b6d-fff9-4fa5-be57-ff71bde34878",
             "sourceColumn": "sucursal_id",
-            "summarizeBy": "none",
-            "isHidden": true
+            "summarizeBy": "none"
           },
           {
             "name": "codigo_sucursal",
             "dataType": "string",
+            "lineageTag": "876b9773-6b78-43c2-9e15-069c99c343b6",
             "sourceColumn": "codigo_sucursal",
             "summarizeBy": "none"
           },
           {
             "name": "sucursal",
             "dataType": "string",
+            "lineageTag": "71c1b992-4b21-45a9-a152-261924906196",
             "sourceColumn": "sucursal",
             "summarizeBy": "none"
           },
           {
             "name": "tipo_venta",
             "dataType": "string",
+            "lineageTag": "d4920bc1-7089-4cb8-8d5b-7e2e2bf6a0a0",
             "sourceColumn": "tipo_venta",
             "summarizeBy": "none"
           },
           {
             "name": "cantidad",
             "dataType": "int64",
+            "lineageTag": "e1d4b546-3553-4c23-8725-152ca52d8689",
             "sourceColumn": "cantidad",
             "summarizeBy": "none"
           },
           {
             "name": "precio_unitario",
             "dataType": "decimal",
-            "sourceColumn": "precio_unitario",
-            "summarizeBy": "none",
             "formatString": "\"Q\" #,0.00;\"Q\" -#,0.00;\"Q\" 0.00",
-            "isHidden": true
+            "isHidden": true,
+            "lineageTag": "3e82245d-d454-4c8d-8d78-57cf1220a0cb",
+            "sourceColumn": "precio_unitario",
+            "summarizeBy": "none"
           },
           {
             "name": "importe",
             "dataType": "decimal",
+            "formatString": "\"Q\" #,0.00;\"Q\" -#,0.00;\"Q\" 0.00",
+            "lineageTag": "e5d91ccc-585f-426c-bfe7-cfc9c6430da2",
             "sourceColumn": "importe",
-            "summarizeBy": "none",
-            "formatString": "\"Q\" #,0.00;\"Q\" -#,0.00;\"Q\" 0.00"
+            "summarizeBy": "none"
           },
           {
             "name": "Producto etiqueta",
             "dataType": "string",
+            "lineageTag": "1a745e4c-260f-45fa-97a4-039b7449865a",
             "sourceColumn": "Producto etiqueta",
             "summarizeBy": "none"
           }
         ],
+        "lineageTag": "472e8f08-1c7a-41c6-beb0-55c50489905f",
         "measures": [
           {
             "name": "Ingresos totales",
+            "displayFolder": "Indicadores",
             "expression": "COALESCE(SUM(v_ventas_detalle[importe]), 0)",
             "formatString": "\"Q\" #,0.00;\"Q\" -#,0.00;\"Q\" 0.00",
-            "displayFolder": "Indicadores"
+            "lineageTag": "de015ef2-f87d-4709-a6bc-014e55c5fbc6"
           },
           {
             "name": "Ventas distintas",
+            "displayFolder": "Indicadores",
             "expression": "COALESCE(DISTINCTCOUNT(v_ventas_detalle[ticket_id]), 0)",
             "formatString": "#,0",
-            "displayFolder": "Indicadores"
+            "lineageTag": "7af20bb9-cd98-4d5d-9dc7-c67f9b70a3e2"
           },
           {
             "name": "Unidades vendidas",
+            "displayFolder": "Indicadores",
             "expression": "COALESCE(SUM(v_ventas_detalle[cantidad]), 0)",
             "formatString": "#,0",
-            "displayFolder": "Indicadores"
+            "lineageTag": "f1470d17-36bb-42b6-bc59-13183144cccd"
           },
           {
             "name": "Ticket promedio",
+            "displayFolder": "Indicadores",
             "expression": "DIVIDE([Ingresos totales], [Ventas distintas])",
             "formatString": "\"Q\" #,0.00;\"Q\" -#,0.00;\"Q\" 0.00",
-            "displayFolder": "Indicadores"
+            "lineageTag": "6df49a5b-8a36-4826-a1ec-ad01fbe16ec0"
           }
         ],
         "partitions": [
@@ -167,7 +201,6 @@
             "name": "Detalle PostgreSQL",
             "mode": "import",
             "source": {
-              "type": "m",
               "expression": [
                 "let",
                 "    Origen = PostgreSQL.Database(Servidor, BaseDatos, [Query = \"SELECT detalle_id::text AS detalle_id, ticket_id::text AS ticket_id, fecha, producto_id::text AS producto_id, codigo_producto, producto, categoria, sucursal_id::text AS sucursal_id, codigo_sucursal, sucursal, tipo_venta, cantidad, precio_unitario, importe FROM dm.v_ventas_detalle\", CreateNavigationProperties = false]),",
@@ -175,79 +208,80 @@
                 "    Etiqueta = Table.AddColumn(Tipos, \"Producto etiqueta\", each [codigo_producto] & \" · \" & [producto], type text)",
                 "in",
                 "    Etiqueta"
-              ]
+              ],
+              "type": "m"
             }
           }
         ]
       },
       {
         "name": "Calendario",
-        "dataCategory": "Time",
         "columns": [
           {
             "name": "Fecha",
-            "dataType": "dateTime",
-            "type": "calculatedTableColumn",
-            "sourceColumn": "[Fecha]",
-            "summarizeBy": "none",
-            "isNameInferred": false,
-            "isDataTypeInferred": false,
-            "isKey": true,
-            "formatString": "dd/MM/yyyy",
             "annotations": [
               {
                 "name": "UnderlyingDateTimeDataType",
                 "value": "Date"
               }
-            ]
+            ],
+            "dataType": "dateTime",
+            "formatString": "dd/MM/yyyy",
+            "isKey": true,
+            "isNameInferred": false,
+            "lineageTag": "e38dde89-d5fc-44eb-a9c6-adb9d830bdd4",
+            "sourceColumn": "[Fecha]",
+            "summarizeBy": "none",
+            "type": "calculatedTableColumn"
           },
           {
             "name": "Año",
             "dataType": "int64",
-            "type": "calculatedTableColumn",
+            "isHidden": true,
+            "isNameInferred": false,
+            "lineageTag": "4f2f4581-13d5-422b-b83a-f1b123bb8952",
             "sourceColumn": "[Año]",
             "summarizeBy": "none",
-            "isNameInferred": false,
-            "isDataTypeInferred": false,
-            "isHidden": true
+            "type": "calculatedTableColumn"
           },
           {
             "name": "Mes",
             "dataType": "int64",
-            "type": "calculatedTableColumn",
+            "isHidden": true,
+            "isNameInferred": false,
+            "lineageTag": "f6feb371-af85-4a36-b63a-82f8c86c1076",
             "sourceColumn": "[Mes]",
             "summarizeBy": "none",
-            "isNameInferred": false,
-            "isDataTypeInferred": false,
-            "isHidden": true
+            "type": "calculatedTableColumn"
           },
           {
             "name": "Año mes",
             "dataType": "int64",
-            "type": "calculatedTableColumn",
+            "isHidden": true,
+            "isNameInferred": false,
+            "lineageTag": "a20c8c91-2857-4d6d-876b-df7a5793173f",
             "sourceColumn": "[Año mes]",
             "summarizeBy": "none",
-            "isNameInferred": false,
-            "isDataTypeInferred": false,
-            "isHidden": true
+            "type": "calculatedTableColumn"
           },
           {
             "name": "Mes año",
             "dataType": "string",
-            "type": "calculatedTableColumn",
+            "isNameInferred": false,
+            "lineageTag": "36b9811d-78c1-4c49-9e7d-ee1dccec7571",
+            "sortByColumn": "Año mes",
             "sourceColumn": "[Mes año]",
             "summarizeBy": "none",
-            "isNameInferred": false,
-            "isDataTypeInferred": false,
-            "sortByColumn": "Año mes"
+            "type": "calculatedTableColumn"
           }
         ],
+        "dataCategory": "Time",
+        "lineageTag": "e6e0bbc0-9c2c-48b4-807e-b6571baca595",
         "partitions": [
           {
             "name": "Calendario",
             "mode": "import",
             "source": {
-              "type": "calculated",
               "expression": [
                 "SELECTCOLUMNS (",
                 "    CALENDAR (DATE(2025, 11, 1), DATE(2026, 10, 31)),",
@@ -257,23 +291,11 @@
                 "    \"Año mes\", YEAR([Date]) * 100 + MONTH([Date]),",
                 "    \"Mes año\", FORMAT([Date], \"mmm yyyy\", \"es-GT\")",
                 ")"
-              ]
+              ],
+              "type": "calculated"
             }
           }
         ]
-      }
-    ],
-    "relationships": [
-      {
-        "name": "Calendario_Detalle",
-        "fromTable": "v_ventas_detalle",
-        "fromColumn": "fecha",
-        "fromCardinality": "many",
-        "toTable": "Calendario",
-        "toColumn": "Fecha",
-        "toCardinality": "one",
-        "crossFilteringBehavior": "oneDirection",
-        "isActive": true
       }
     ]
   }

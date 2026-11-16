@@ -1,9 +1,13 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/2.0.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.3.0/schema.json",
   "themeCollection": {
     "customTheme": {
       "name": "Habits",
-      "reportVersionAtImport": "2.0",
+      "reportVersionAtImport": {
+        "visual": "1.8.1",
+        "report": "2.0.1",
+        "page": "1.3.1"
+      },
       "type": "RegisteredResources"
     }
   },
@@ -14,10 +18,13 @@
       "items": [
         {
           "name": "Habits",
-          "path": "Habits.json",
+          "path": "Habits",
           "type": "CustomTheme"
         }
       ]
     }
-  ]
+  ],
+  "settings": {
+    "useEnhancedTooltips": false
+  }
 }

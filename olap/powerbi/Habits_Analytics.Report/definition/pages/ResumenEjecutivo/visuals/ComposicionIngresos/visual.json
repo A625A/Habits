@@ -1,16 +1,72 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.1.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "ComposicionIngresos",
   "position": {
     "x": 480,
     "y": 640,
-    "width": 540,
-    "height": 308,
     "z": 11,
+    "height": 308,
+    "width": 540,
     "tabOrder": 11
   },
   "visual": {
     "visualType": "treemap",
+    "query": {
+      "queryState": {
+        "Details": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "v_ventas_detalle"
+                    }
+                  },
+                  "Property": "Producto etiqueta"
+                }
+              },
+              "queryRef": "v_ventas_detalle.Producto etiqueta"
+            }
+          ]
+        },
+        "Group": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "v_ventas_detalle"
+                    }
+                  },
+                  "Property": "categoria"
+                }
+              },
+              "queryRef": "v_ventas_detalle.categoria",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "v_ventas_detalle"
+                    }
+                  },
+                  "Property": "Ingresos totales"
+                }
+              },
+              "queryRef": "v_ventas_detalle.Ingresos totales"
+            }
+          ]
+        }
+      }
+    },
     "visualContainerObjects": {
       "title": [
         {
@@ -26,13 +82,6 @@
               "expr": {
                 "Literal": {
                   "Value": "'Ingresos por categoría y producto (GTQ)'"
-                }
-              }
-            },
-            "fontSize": {
-              "expr": {
-                "Literal": {
-                  "Value": "12"
                 }
               }
             },
@@ -70,72 +119,10 @@
                   }
                 }
               }
-            },
-            "transparency": {
-              "expr": {
-                "Literal": {
-                  "Value": "0"
-                }
-              }
             }
           }
         }
       ]
-    },
-    "query": {
-      "queryState": {
-        "Group": {
-          "projections": [
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "v_ventas_detalle"
-                    }
-                  },
-                  "Property": "categoria"
-                }
-              },
-              "queryRef": "v_ventas_detalle.categoria"
-            }
-          ]
-        },
-        "Details": {
-          "projections": [
-            {
-              "field": {
-                "Column": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "v_ventas_detalle"
-                    }
-                  },
-                  "Property": "Producto etiqueta"
-                }
-              },
-              "queryRef": "v_ventas_detalle.Producto etiqueta"
-            }
-          ]
-        },
-        "Values": {
-          "projections": [
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "v_ventas_detalle"
-                    }
-                  },
-                  "Property": "Ingresos totales"
-                }
-              },
-              "queryRef": "v_ventas_detalle.Ingresos totales"
-            }
-          ]
-        }
-      }
     }
   }
 }

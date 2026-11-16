@@ -1,9 +1,10 @@
 # Dashboard ejecutivo de Habits — Brian
 
-**Estado: preparación en curso, pendiente de validación en Power BI Desktop y del
-dataset final de Rodrigo.** El PBIP es una fuente editable complementaria; no
-sustituye `Habits_Analytics.pbix`. No presentar esta carpeta como entrega terminada
-hasta completar [VALIDACION.md](VALIDACION.md).
+**Estado: PBIX guardado, estructura comprobada y reapertura confirmada manualmente
+por Brian.** Siguen pendientes la actualización desde PostgreSQL y la validación
+de cifras e interacciones con el dataset final de Rodrigo. El PBIP es una fuente
+editable complementaria. No presentar la carpeta como entrega terminada hasta
+completar [VALIDACION.md](VALIDACION.md).
 
 ## Requisitos académicos y responsabilidades
 
@@ -27,7 +28,8 @@ local aislada. No ejecutar instaladores SQL sobre la base operativa. Mantener
 PostgreSQL encendido para actualizar; Flask y pgAdmin no son necesarios. En modo
 Import se puede consultar lo ya guardado en el PBIX sin servidor, pero no actualizar.
 
-1. Abrir `Habits_Analytics.pbip` con Power BI Desktop actualizado. Si la edición
+1. Abrir **`Habits_Analytics.pbix`** con Power BI Desktop. Para trabajar sobre la
+   fuente editable complementaria, abrir `Habits_Analytics.pbip`; si la edición
    instalada lo requiere, habilitar proyectos de Power BI en Opciones >
    Características de versión preliminar y reiniciar.
 2. En **Transformar datos > Editar parámetros**, revisar `Servidor` (incluye puerto)
