@@ -55,6 +55,12 @@ Microsoft documenta el [formato PBIP y la conversión mediante Guardar como](htt
 y el [conector PostgreSQL incluido en Desktop](https://learn.microsoft.com/en-us/power-query/connectors/postgresql).
 No hace falta instalar Npgsql adicional ni pgAdmin.
 
+La comprobación estructural se puede repetir desde PowerShell con:
+`powershell.exe -NoProfile -ExecutionPolicy Bypass -File olap/powerbi/comprobar_fuentes.ps1`.
+La excepción de política afecta solo a ese proceso; no cambia la configuración de
+Windows. Comprueba referencias, relación, meses y visuales con las bibliotecas
+instaladas de Desktop. No ejecuta las consultas ni sustituye la revisión visual.
+
 ## Qué muestran los indicadores
 
 | KPI | Para qué sirve |
