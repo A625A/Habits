@@ -11,8 +11,8 @@ capturas o conclusiones de negocio para cubrir esas ausencias.
 |---|---|---|
 | Guía académica | Se leyeron las cuatro páginas del PDF oficial | Revisada |
 | Remoto/base | `https://github.com/A625A/Habits.git`; `main` en `aaff7d0`, confirmado con `ls-remote` | Verificado |
-| Identidad Git | Commits anteriores vinculados por API de GitHub a ChenBrian833; nombre/correo existentes configurados solo localmente | Verificada para autoría; no demuestra sesión autenticada |
-| Rodrigo | No hay CSV, generador ni ETL en el checkout; las únicas ramas remotas al revisar son main y Andrew | Pendiente |
+| Identidad Git | Commits anteriores vinculados por API de GitHub a ChenBrian833; nombre/correo existentes configurados solo localmente. En la continuación, `gh api user --jq .login` devuelve ChenBrian833 | Autoría y sesión activa verificadas |
+| Rodrigo | Tras `git fetch origin`, no hay CSV, generador ni ETL en el checkout ni en origin/main; antes de subir Brian, las únicas ramas remotas seguían siendo main y Andrew. Consulta nueva al lector: 0 detalles y 0 tickets | Pendiente |
 | Chris | No hay diseño ejecutivo de Proyecto 3, PDF final ni presentación de Proyecto 3 identificados | Diseño provisional |
 | SQL de Andrew | Archivos 01/02/03/04 presentes y revisados; contrato de detalle coincide con 02 | Verificado |
 | PostgreSQL instalado | Binarios portátiles EDB, `psql --version`: 17.12 | Preparado |
@@ -27,7 +27,7 @@ capturas o conclusiones de negocio para cubrir esas ausencias.
 | Modelo abierto en Desktop | API local de Analysis Services devuelve las dos tablas y cuatro medidas; Calendario=Ready, detalle=NoData | Apertura de modelo verificada por API; conexión M pendiente |
 | DAX en motor de Desktop | `comparar_kpis.dax` ejecutado por ADOMD en la instancia local: cinco escenarios y doce meses con 0/0/0/BLANK | Aprobado solo sin datos; no acredita importación desde PostgreSQL |
 | PBIX y visuales | No control nativo de Desktop disponible en esta sesión; no se ha observado renderizado ni guardado de PBIX | Pendiente de Brian |
-| GitHub | Sin sesión autenticada al comprobar `gh auth status`; push intentado sin interacción y rechazado por falta de credenciales | Commits locales conservados; push/PR pendientes |
+| GitHub | Sesión activa ChenBrian833 y permiso push comprobados; rama subida y PR [#3](https://github.com/A625A/Habits/pull/3) creado hacia main | Borrador; sin merge |
 | Dump/restauración final | No hay dump final ni prueba de restauración identificados | Pendiente del equipo |
 
 No se modificaron archivos de los demás integrantes ni tablas de Proyecto 2. La
@@ -137,26 +137,20 @@ También falta comprobar en Desktop:
 
 Solo después de cerrar estas pendientes corresponde retirar el estado de borrador.
 
-## Continuar el envío a GitHub
+## Envío a GitHub completado
 
-Desde la raíz, autenticar la herramienta portátil con la cuenta **ChenBrian833**:
+En la continuación se verificó la sesión activa **ChenBrian833**, el permiso de
+escritura en A625A/Habits y la base predeterminada `main`. Se revisaron los cuatro
+commits existentes: `a2908cf`, `aef208b`, `5cff27b` y `5290d32`. Se subió la rama
+`feature/brian-powerbi-dashboard` sin reescribir historial y se creó el
+[PR #3](https://github.com/A625A/Habits/pull/3) como **borrador**, sin merge.
+Los cambios posteriores de este registro se envían a la misma rama y PR.
 
-```powershell
-& '.local/tools/gh/bin/gh.exe' auth login --hostname github.com --git-protocol https --web
-& '.local/tools/gh/bin/gh.exe' api user --jq .login
-```
-
-El segundo comando debe devolver ChenBrian833. Si devuelve otra cuenta, detener
-el envío y seleccionar la cuenta correcta. La autoría histórica verificada no
-sustituye esta comprobación de sesión. Después:
-
-```powershell
-& '.local/tools/gh/bin/gh.exe' auth setup-git
-git push -u origin feature/brian-powerbi-dashboard
-& '.local/tools/gh/bin/gh.exe' pr create --repo A625A/Habits --base main --head feature/brian-powerbi-dashboard --draft --title 'Preparar dashboard ejecutivo de Brian en Power BI' --body-file '.local/tools/pr-brian.md'
-```
-
-La descripción concreta del PR ya está preparada localmente en ese archivo,
-excluido de Git. Si aparece falta de permisos sobre origin, solicitar acceso de
-colaborador al repositorio; no hacer push forzado ni crear otro remoto sin revisar.
-No mezclar el PR. Registrar aquí su enlace una vez creado realmente.
+El impedimento de autenticación del primer intento quedó resuelto. Continúan los
+pendientes de datos y Desktop de las secciones anteriores. El PBIX no existe aún
+en la ruta de entrega al revisar esta continuación; no se da por aprobado su
+guardado ni su cierre/reapertura. Se solicitó a Brian realizar los pasos exactos
+del [protocolo de guardado](README.md#guardar-y-comprobar-el-pbix-en-desktop).
+Las herramientas de esta sesión permiten leer el motor local, pero no controlar
+la ventana de Desktop ni ejecutar su acción Guardar como. No se sustituyó el
+PBIX con un archivo de otro formato.

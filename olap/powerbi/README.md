@@ -45,9 +45,9 @@ Import se puede consultar lo ya guardado en el PBIX sin servidor, pero no actual
 6. Confirmar el calendario marcado como tabla de fechas, relación activa
    `Calendario[Fecha]` (1) → `v_ventas_detalle[fecha]` (*), dirección única, y
    `Mes año` ordenado por `Año mes`. Desactivar fecha/hora automática.
-7. Ejecutar las comprobaciones de VALIDACION.md, guardar con **Archivo > Guardar
-   como > Power BI (.pbix)** en `olap/powerbi/Habits_Analytics.pbix`, cerrar y volver
-   a abrir ese PBIX. Verificar medidas, filtros y cinco gráficos antes de aprobar.
+7. Guardar y comprobar el PBIX con el protocolo siguiente. La reapertura del
+   archivo y la validación con datos finales son comprobaciones independientes.
+   Completar ambas en VALIDACION.md antes de aprobar la entrega.
 8. Facilitar a Chris la exportación mediante **Archivo > Exportar > PDF**, con los
    filtros de la presentación. Chris conserva la responsabilidad del PDF final.
 
@@ -60,6 +60,30 @@ La comprobación estructural se puede repetir desde PowerShell con:
 La excepción de política afecta solo a ese proceso; no cambia la configuración de
 Windows. Comprueba referencias, relación, meses y visuales con las bibliotecas
 instaladas de Desktop. No ejecuta las consultas ni sustituye la revisión visual.
+
+## Guardar y comprobar el PBIX en Desktop
+
+1. Abrir **`olap/powerbi/Habits_Analytics.pbip`**, dentro de este repositorio, con
+   Power BI Desktop. Si faltan los datos finales, conservar el modelo sin ventas;
+   no cambiar el origen por un CSV de ejemplo ni inventar cifras para guardarlo.
+2. Seleccionar **Archivo > Guardar como > Examinar**. En tipo de archivo elegir
+   **Power BI (*.pbix)**, carpeta `olap/powerbi/` y nombre
+   **`Habits_Analytics.pbix`**. Guardar desde Desktop; no renombrar el PBIP.
+3. Cerrar ese informe, atendiendo cualquier aviso de cambios. Abrir desde el
+   Explorador el archivo **`.pbix` recién guardado**, no el acceso `.pbip`.
+4. Comprobar que abre sin errores y conserva una página «Resumen ejecutivo»,
+   cuatro tarjetas, tres segmentadores y línea, barras, dona, treemap y dispersión.
+   Sin datos, comprobar el tipo de cada gráfico seleccionándolo en Desktop.
+5. En el modelo, comprobar `Calendario` y `v_ventas_detalle`, la relación activa
+   1:N, las cuatro medidas y sus fórmulas, y los parámetros Servidor/BaseDatos.
+   Registrar en VALIDACION.md si se comprobó directamente o por confirmación de
+   Brian; no marcarlo aprobado solo porque el archivo existe.
+
+Un PBIX guardado/reabierto sin ventas sería un avance editable. Para finalizar
+faltan el ETL de Rodrigo, la actualización real desde PostgreSQL y la comparación
+de métricas e interacciones con los 10,000 tickets finales. El
+[PR #3](https://github.com/A625A/Habits/pull/3) permanece en borrador mientras falten
+esas comprobaciones.
 
 ## Qué muestran los indicadores
 
