@@ -1,0 +1,23 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/2.0.0/schema.json",
+  "themeCollection": {
+    "customTheme": {
+      "name": "Habits",
+      "reportVersionAtImport": "2.0",
+      "type": "RegisteredResources"
+    }
+  },
+  "resourcePackages": [
+    {
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
+      "items": [
+        {
+          "name": "Habits",
+          "path": "Habits.json",
+          "type": "CustomTheme"
+        }
+      ]
+    }
+  ]
+}

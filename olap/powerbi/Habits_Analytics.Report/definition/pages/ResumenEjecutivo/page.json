@@ -1,0 +1,446 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json",
+  "name": "ResumenEjecutivo",
+  "displayName": "Resumen ejecutivo",
+  "displayOption": "FitToPage",
+  "width": 1600,
+  "height": 1000,
+  "visualInteractions": [
+    {
+      "source": "IngresosMensuales",
+      "target": "ProductosUnidades",
+      "type": "DataFilter"
+    },
+    {
+      "source": "IngresosMensuales",
+      "target": "IngresosCanal",
+      "type": "DataFilter"
+    },
+    {
+      "source": "IngresosMensuales",
+      "target": "ComposicionIngresos",
+      "type": "DataFilter"
+    },
+    {
+      "source": "IngresosMensuales",
+      "target": "VolumenIngresos",
+      "type": "DataFilter"
+    },
+    {
+      "source": "IngresosMensuales",
+      "target": "KPI1",
+      "type": "DataFilter"
+    },
+    {
+      "source": "IngresosMensuales",
+      "target": "KPI2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "IngresosMensuales",
+      "target": "KPI3",
+      "type": "DataFilter"
+    },
+    {
+      "source": "IngresosMensuales",
+      "target": "KPI4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ProductosUnidades",
+      "target": "IngresosMensuales",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ProductosUnidades",
+      "target": "IngresosCanal",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ProductosUnidades",
+      "target": "ComposicionIngresos",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ProductosUnidades",
+      "target": "VolumenIngresos",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ProductosUnidades",
+      "target": "KPI1",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ProductosUnidades",
+      "target": "KPI2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ProductosUnidades",
+      "target": "KPI3",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ProductosUnidades",
+      "target": "KPI4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "IngresosCanal",
+      "target": "IngresosMensuales",
+      "type": "DataFilter"
+    },
+    {
+      "source": "IngresosCanal",
+      "target": "ProductosUnidades",
+      "type": "DataFilter"
+    },
+    {
+      "source": "IngresosCanal",
+      "target": "ComposicionIngresos",
+      "type": "DataFilter"
+    },
+    {
+      "source": "IngresosCanal",
+      "target": "VolumenIngresos",
+      "type": "DataFilter"
+    },
+    {
+      "source": "IngresosCanal",
+      "target": "KPI1",
+      "type": "DataFilter"
+    },
+    {
+      "source": "IngresosCanal",
+      "target": "KPI2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "IngresosCanal",
+      "target": "KPI3",
+      "type": "DataFilter"
+    },
+    {
+      "source": "IngresosCanal",
+      "target": "KPI4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ComposicionIngresos",
+      "target": "IngresosMensuales",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ComposicionIngresos",
+      "target": "ProductosUnidades",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ComposicionIngresos",
+      "target": "IngresosCanal",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ComposicionIngresos",
+      "target": "VolumenIngresos",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ComposicionIngresos",
+      "target": "KPI1",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ComposicionIngresos",
+      "target": "KPI2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ComposicionIngresos",
+      "target": "KPI3",
+      "type": "DataFilter"
+    },
+    {
+      "source": "ComposicionIngresos",
+      "target": "KPI4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "VolumenIngresos",
+      "target": "IngresosMensuales",
+      "type": "DataFilter"
+    },
+    {
+      "source": "VolumenIngresos",
+      "target": "ProductosUnidades",
+      "type": "DataFilter"
+    },
+    {
+      "source": "VolumenIngresos",
+      "target": "IngresosCanal",
+      "type": "DataFilter"
+    },
+    {
+      "source": "VolumenIngresos",
+      "target": "ComposicionIngresos",
+      "type": "DataFilter"
+    },
+    {
+      "source": "VolumenIngresos",
+      "target": "KPI1",
+      "type": "DataFilter"
+    },
+    {
+      "source": "VolumenIngresos",
+      "target": "KPI2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "VolumenIngresos",
+      "target": "KPI3",
+      "type": "DataFilter"
+    },
+    {
+      "source": "VolumenIngresos",
+      "target": "KPI4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroFecha",
+      "target": "IngresosMensuales",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroFecha",
+      "target": "ProductosUnidades",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroFecha",
+      "target": "IngresosCanal",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroFecha",
+      "target": "ComposicionIngresos",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroFecha",
+      "target": "VolumenIngresos",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroFecha",
+      "target": "KPI1",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroFecha",
+      "target": "KPI2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroFecha",
+      "target": "KPI3",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroFecha",
+      "target": "KPI4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroSucursal",
+      "target": "IngresosMensuales",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroSucursal",
+      "target": "ProductosUnidades",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroSucursal",
+      "target": "IngresosCanal",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroSucursal",
+      "target": "ComposicionIngresos",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroSucursal",
+      "target": "VolumenIngresos",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroSucursal",
+      "target": "KPI1",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroSucursal",
+      "target": "KPI2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroSucursal",
+      "target": "KPI3",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroSucursal",
+      "target": "KPI4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroCategoria",
+      "target": "IngresosMensuales",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroCategoria",
+      "target": "ProductosUnidades",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroCategoria",
+      "target": "IngresosCanal",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroCategoria",
+      "target": "ComposicionIngresos",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroCategoria",
+      "target": "VolumenIngresos",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroCategoria",
+      "target": "KPI1",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroCategoria",
+      "target": "KPI2",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroCategoria",
+      "target": "KPI3",
+      "type": "DataFilter"
+    },
+    {
+      "source": "FiltroCategoria",
+      "target": "KPI4",
+      "type": "DataFilter"
+    },
+    {
+      "source": "IngresosMensuales",
+      "target": "FiltroFecha",
+      "type": "NoFilter"
+    },
+    {
+      "source": "IngresosMensuales",
+      "target": "FiltroSucursal",
+      "type": "NoFilter"
+    },
+    {
+      "source": "IngresosMensuales",
+      "target": "FiltroCategoria",
+      "type": "NoFilter"
+    },
+    {
+      "source": "ProductosUnidades",
+      "target": "FiltroFecha",
+      "type": "NoFilter"
+    },
+    {
+      "source": "ProductosUnidades",
+      "target": "FiltroSucursal",
+      "type": "NoFilter"
+    },
+    {
+      "source": "ProductosUnidades",
+      "target": "FiltroCategoria",
+      "type": "NoFilter"
+    },
+    {
+      "source": "IngresosCanal",
+      "target": "FiltroFecha",
+      "type": "NoFilter"
+    },
+    {
+      "source": "IngresosCanal",
+      "target": "FiltroSucursal",
+      "type": "NoFilter"
+    },
+    {
+      "source": "IngresosCanal",
+      "target": "FiltroCategoria",
+      "type": "NoFilter"
+    },
+    {
+      "source": "ComposicionIngresos",
+      "target": "FiltroFecha",
+      "type": "NoFilter"
+    },
+    {
+      "source": "ComposicionIngresos",
+      "target": "FiltroSucursal",
+      "type": "NoFilter"
+    },
+    {
+      "source": "ComposicionIngresos",
+      "target": "FiltroCategoria",
+      "type": "NoFilter"
+    },
+    {
+      "source": "VolumenIngresos",
+      "target": "FiltroFecha",
+      "type": "NoFilter"
+    },
+    {
+      "source": "VolumenIngresos",
+      "target": "FiltroSucursal",
+      "type": "NoFilter"
+    },
+    {
+      "source": "VolumenIngresos",
+      "target": "FiltroCategoria",
+      "type": "NoFilter"
+    }
+  ],
+  "objects": {
+    "background": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#F6F2EB'"
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
+}

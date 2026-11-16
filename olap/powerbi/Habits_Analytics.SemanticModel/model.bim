@@ -1,0 +1,280 @@
+{
+  "name": "Habits_Analytics",
+  "compatibilityLevel": 1600,
+  "model": {
+    "culture": "es-GT",
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "sourceQueryCulture": "es-GT",
+    "dataAccessOptions": {
+      "legacyRedirects": true,
+      "returnErrorValuesAsNull": false
+    },
+    "annotations": [
+      {
+        "name": "__PBI_TimeIntelligenceEnabled",
+        "value": "0"
+      }
+    ],
+    "expressions": [
+      {
+        "name": "Servidor",
+        "kind": "m",
+        "expression": "\"127.0.0.1:55440\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]"
+      },
+      {
+        "name": "BaseDatos",
+        "kind": "m",
+        "expression": "\"habits_olap\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]"
+      }
+    ],
+    "tables": [
+      {
+        "name": "v_ventas_detalle",
+        "columns": [
+          {
+            "name": "detalle_id",
+            "dataType": "string",
+            "sourceColumn": "detalle_id",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "ticket_id",
+            "dataType": "string",
+            "sourceColumn": "ticket_id",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "fecha",
+            "dataType": "dateTime",
+            "sourceColumn": "fecha",
+            "summarizeBy": "none",
+            "formatString": "dd/MM/yyyy",
+            "annotations": [
+              {
+                "name": "UnderlyingDateTimeDataType",
+                "value": "Date"
+              }
+            ]
+          },
+          {
+            "name": "producto_id",
+            "dataType": "string",
+            "sourceColumn": "producto_id",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "codigo_producto",
+            "dataType": "string",
+            "sourceColumn": "codigo_producto",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "producto",
+            "dataType": "string",
+            "sourceColumn": "producto",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "categoria",
+            "dataType": "string",
+            "sourceColumn": "categoria",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "sucursal_id",
+            "dataType": "string",
+            "sourceColumn": "sucursal_id",
+            "summarizeBy": "none",
+            "isHidden": true
+          },
+          {
+            "name": "codigo_sucursal",
+            "dataType": "string",
+            "sourceColumn": "codigo_sucursal",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "sucursal",
+            "dataType": "string",
+            "sourceColumn": "sucursal",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "tipo_venta",
+            "dataType": "string",
+            "sourceColumn": "tipo_venta",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "cantidad",
+            "dataType": "int64",
+            "sourceColumn": "cantidad",
+            "summarizeBy": "none"
+          },
+          {
+            "name": "precio_unitario",
+            "dataType": "decimal",
+            "sourceColumn": "precio_unitario",
+            "summarizeBy": "none",
+            "formatString": "\"Q\" #,0.00;\"Q\" -#,0.00;\"Q\" 0.00",
+            "isHidden": true
+          },
+          {
+            "name": "importe",
+            "dataType": "decimal",
+            "sourceColumn": "importe",
+            "summarizeBy": "none",
+            "formatString": "\"Q\" #,0.00;\"Q\" -#,0.00;\"Q\" 0.00"
+          },
+          {
+            "name": "Producto etiqueta",
+            "dataType": "string",
+            "sourceColumn": "Producto etiqueta",
+            "summarizeBy": "none"
+          }
+        ],
+        "measures": [
+          {
+            "name": "Ingresos totales",
+            "expression": "COALESCE(SUM(v_ventas_detalle[importe]), 0)",
+            "formatString": "\"Q\" #,0.00;\"Q\" -#,0.00;\"Q\" 0.00",
+            "displayFolder": "Indicadores"
+          },
+          {
+            "name": "Ventas distintas",
+            "expression": "COALESCE(DISTINCTCOUNT(v_ventas_detalle[ticket_id]), 0)",
+            "formatString": "#,0",
+            "displayFolder": "Indicadores"
+          },
+          {
+            "name": "Unidades vendidas",
+            "expression": "COALESCE(SUM(v_ventas_detalle[cantidad]), 0)",
+            "formatString": "#,0",
+            "displayFolder": "Indicadores"
+          },
+          {
+            "name": "Ticket promedio",
+            "expression": "DIVIDE([Ingresos totales], [Ventas distintas])",
+            "formatString": "\"Q\" #,0.00;\"Q\" -#,0.00;\"Q\" 0.00",
+            "displayFolder": "Indicadores"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Detalle PostgreSQL",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Origen = PostgreSQL.Database(Servidor, BaseDatos, [Query = \"SELECT detalle_id::text AS detalle_id, ticket_id::text AS ticket_id, fecha, producto_id::text AS producto_id, codigo_producto, producto, categoria, sucursal_id::text AS sucursal_id, codigo_sucursal, sucursal, tipo_venta, cantidad, precio_unitario, importe FROM dm.v_ventas_detalle\", CreateNavigationProperties = false]),",
+                "    Tipos = Table.TransformColumnTypes(Origen, {{\"fecha\", type date}, {\"cantidad\", Int64.Type}, {\"precio_unitario\", Currency.Type}, {\"importe\", Currency.Type}, {\"detalle_id\", type text}, {\"ticket_id\", type text}, {\"producto_id\", type text}, {\"sucursal_id\", type text}}),",
+                "    Etiqueta = Table.AddColumn(Tipos, \"Producto etiqueta\", each [codigo_producto] & \" · \" & [producto], type text)",
+                "in",
+                "    Etiqueta"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Calendario",
+        "dataCategory": "Time",
+        "columns": [
+          {
+            "name": "Fecha",
+            "dataType": "dateTime",
+            "type": "calculatedTableColumn",
+            "sourceColumn": "[Fecha]",
+            "summarizeBy": "none",
+            "isNameInferred": false,
+            "isDataTypeInferred": false,
+            "isKey": true,
+            "formatString": "dd/MM/yyyy",
+            "annotations": [
+              {
+                "name": "UnderlyingDateTimeDataType",
+                "value": "Date"
+              }
+            ]
+          },
+          {
+            "name": "Año",
+            "dataType": "int64",
+            "type": "calculatedTableColumn",
+            "sourceColumn": "[Año]",
+            "summarizeBy": "none",
+            "isNameInferred": false,
+            "isDataTypeInferred": false,
+            "isHidden": true
+          },
+          {
+            "name": "Mes",
+            "dataType": "int64",
+            "type": "calculatedTableColumn",
+            "sourceColumn": "[Mes]",
+            "summarizeBy": "none",
+            "isNameInferred": false,
+            "isDataTypeInferred": false,
+            "isHidden": true
+          },
+          {
+            "name": "Año mes",
+            "dataType": "int64",
+            "type": "calculatedTableColumn",
+            "sourceColumn": "[Año mes]",
+            "summarizeBy": "none",
+            "isNameInferred": false,
+            "isDataTypeInferred": false,
+            "isHidden": true
+          },
+          {
+            "name": "Mes año",
+            "dataType": "string",
+            "type": "calculatedTableColumn",
+            "sourceColumn": "[Mes año]",
+            "summarizeBy": "none",
+            "isNameInferred": false,
+            "isDataTypeInferred": false,
+            "sortByColumn": "Año mes"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Calendario",
+            "mode": "import",
+            "source": {
+              "type": "calculated",
+              "expression": [
+                "SELECTCOLUMNS (",
+                "    CALENDAR (DATE(2025, 11, 1), DATE(2026, 10, 31)),",
+                "    \"Fecha\", [Date],",
+                "    \"Año\", YEAR([Date]),",
+                "    \"Mes\", MONTH([Date]),",
+                "    \"Año mes\", YEAR([Date]) * 100 + MONTH([Date]),",
+                "    \"Mes año\", FORMAT([Date], \"mmm yyyy\", \"es-GT\")",
+                ")"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "Calendario_Detalle",
+        "fromTable": "v_ventas_detalle",
+        "fromColumn": "fecha",
+        "fromCardinality": "many",
+        "toTable": "Calendario",
+        "toColumn": "Fecha",
+        "toCardinality": "one",
+        "crossFilteringBehavior": "oneDirection",
+        "isActive": true
+      }
+    ]
+  }
+}
