@@ -1,0 +1,23 @@
+// Cuatro medidas sobre dm.v_ventas_detalle importada como v_ventas_detalle.
+// Sin ventas: tres ceros y promedio BLANK. Moneda de presentación: GTQ (Q).
+
+Ingresos totales = COALESCE(SUM(v_ventas_detalle[importe]), 0)
+
+Ventas distintas = COALESCE(DISTINCTCOUNT(v_ventas_detalle[ticket_id]), 0)
+
+Unidades vendidas = COALESCE(SUM(v_ventas_detalle[cantidad]), 0)
+
+Ticket promedio = DIVIDE([Ingresos totales], [Ventas distintas])
+
+// Tabla calculada; marcar Fecha como columna de fechas.
+Calendario =
+SELECTCOLUMNS (
+    CALENDAR (DATE(2025, 11, 1), DATE(2026, 10, 31)),
+    "Fecha", [Date],
+    "Año", YEAR([Date]),
+    "Mes", MONTH([Date]),
+    "Año mes", YEAR([Date]) * 100 + MONTH([Date]),
+    "Mes año", FORMAT([Date], "mmm yyyy", "es-GT")
+)
+
+// Ordenar Calendario[Mes año] por Calendario[Año mes].
