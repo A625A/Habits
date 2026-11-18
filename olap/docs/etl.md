@@ -71,3 +71,26 @@ Los commits 4 y 5 implementarán `olap/scripts/etl.py`. Aún no hay comando de c
 Deberá rechazar fechas, IDs duplicados, referencias, cantidades y precios inválidos,
 comprobar tickets completos y validar todo antes de escribir. La recarga del mismo
 dataset no deberá duplicar hechos ni modificar tablas de Proyecto 2.
+
+## Evidencia del dataset entregado
+
+Generado y comprobado el 18 de noviembre de 2026 con Python 3.12.13 y semilla
+20251101. Las cuatro pruebas de `test_generador.py` pasan sin conexión a PostgreSQL.
+
+| Medida | Resultado |
+| --- | ---: |
+| Ventas distintas | 10,000 |
+| Detalles | 19,175 |
+| Unidades | 23,641 |
+| Importe simulado, GTQ | 583,177.42 |
+| Tickets DEMO-01 | 5,668 |
+| Tickets DEMO-02 | 4,332 |
+| Tickets local | 4,893 |
+| Tickets llevar | 5,107 |
+| Fechas con ventas | 365 |
+
+Las pruebas contrastan los productos y sucursales con el SQL fuente, revisan el
+período, unicidad y referencias, comprueban cantidades y precios, y comparan los
+CSV publicados byte por byte con una nueva generación. Otra semilla produce
+otro dataset. Estas pruebas no demuestran todavía la carga a PostgreSQL;
+esa verificación corresponde a los commits pendientes.

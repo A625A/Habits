@@ -1,0 +1,13 @@
+producto_id,codigo,nombre,categoria,precio
+1,HAB-01,Latte de cardamomo y miel,bebida,26.00
+2,HAB-02,Mocha de chocolate,bebida,28.00
+3,HAB-03,Cold Brew de panela y naranja,bebida,25.00
+4,HAB-04,Latte helado de vainilla y canela,bebida,27.00
+5,HAB-05,Dirty Chai,bebida,29.00
+6,HAB-06,Chai de vainilla y panela,bebida,25.00
+7,HAB-07,Croissant de guayaba y queso crema,panaderia,22.00
+8,HAB-08,Rollo de canela con glaseado de café,panaderia,20.00
+9,HAB-09,Pan de banano,panaderia,16.00
+10,HAB-10,"Croissant de espinaca, queso crema y tomate",panaderia,24.00
+11,HAB-11,Cheesecake de café y panela,postre,30.00
+12,HAB-12,Galletas tipo Ferrero Rocher,postre,18.00
