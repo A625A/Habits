@@ -152,7 +152,7 @@ categoría y tipo contra las consultas finales de `validar_dashboard.sql`.
 | Cuatro KPIs por cada mes | Pendiente | Pendiente | No aprobado |
 | DEMO-01 | 18/11/2026: Habits Sucursal 1: Q331,190.65; 5,668 tickets; 13,444 unidades; Q58.43 | Q 331.19 mil; 5,668 ventas; Q 58.43 | Coincide al redondeo mostrado; aprobado |
 | DEMO-02 | 18/11/2026: Habits Sucursal 2: Q251,986.77; 4,332 tickets; 10,197 unidades; Q58.17 | Q 251.99 mil; 4,332 ventas; Q 58.17 | Coincide al redondeo mostrado; aprobado |
-| bebida | Pendiente | Pendiente | No aprobado |
+| bebida | 18/11/2026: Q363,585.73; 7,753 tickets distintos; 13,459 unidades; ticket promedio Q46.90 | Q 363.59 mil; 7,753 ventas distintas; 13 mil unidades; Q 46.90 | Coincide al redondeo mostrado; aprobado |
 | noviembre 2025 / DEMO-01 / bebida | Pendiente | Pendiente | No aprobado |
 | Período sin ventas | Pendiente | Pendiente | No aprobado |
 | Ticket multíproducto | Pendiente | Pendiente | No aprobado |
