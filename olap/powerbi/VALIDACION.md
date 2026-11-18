@@ -147,15 +147,21 @@ categoría y tipo contra las consultas finales de `validar_dashboard.sql`.
 
 | Comprobación final | SQL final obtenido | Power BI obtenido | Diferencia/estado |
 |---|---|---|---|
-| 10000 tickets distintos, detalles sin duplicar, fechas válidas | Pendiente | Pendiente | No aprobado |
-| Cuatro KPIs generales | Pendiente | Pendiente | No aprobado |
+| 10000 tickets distintos, detalles sin duplicar, fechas válidas | 18/11/2026: 10,000 tickets, 19,175 filas en `dm.v_ventas_detalle`; ETL y SQL 03 aprobados | 10,000 ventas | Coincide; aprobado |
+| Cuatro KPIs generales | 18/11/2026: Q583,177.42; 10,000 tickets; 23,641 unidades; ticket promedio Q58.32 | Q 583.18 mil; 10,000 ventas; 24 mil (23,641) unidades; Q 58.32 | Coincide al redondeo mostrado; aprobado |
 | Cuatro KPIs por cada mes | Pendiente | Pendiente | No aprobado |
-| DEMO-01 | Pendiente | Pendiente | No aprobado |
+| DEMO-01 | 18/11/2026: Habits Sucursal 1: Q331,190.65; 5,668 tickets; 13,444 unidades; Q58.43 | Q 331.19 mil; 5,668 ventas; Q 58.43 | Coincide al redondeo mostrado; aprobado |
+| DEMO-02 | 18/11/2026: Habits Sucursal 2: Q251,986.77; 4,332 tickets; 10,197 unidades; Q58.17 | Q 251.99 mil; 4,332 ventas; Q 58.17 | Coincide al redondeo mostrado; aprobado |
 | bebida | Pendiente | Pendiente | No aprobado |
 | noviembre 2025 / DEMO-01 / bebida | Pendiente | Pendiente | No aprobado |
 | Período sin ventas | Pendiente | Pendiente | No aprobado |
 | Ticket multíproducto | Pendiente | Pendiente | No aprobado |
 | Ticket multicategoría o ausencia demostrada | Pendiente | Pendiente | No aprobado |
+
+18 de noviembre de 2026: con los datos de Rodrigo cargados, se probó en Power BI el
+filtro de sucursal y la suma de las 2 sucursales da el total (Q331,190.65 +
+Q251,986.77 = Q583,177.42; 5,668 + 4,332 = 10,000 tickets). Consulta SQL hecha con
+el usuario lector `habits_powerbi`.
 
 También falta comprobar en Desktop con los datos finales:
 
