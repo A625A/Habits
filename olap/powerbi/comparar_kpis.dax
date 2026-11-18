@@ -1,0 +1,43 @@
+// Ejecutar en Vista de consulta DAX de Desktop después de Actualizar.
+// Comparar con validar_dashboard.sql; no requiere una segunda página.
+EVALUATE
+UNION (
+    ROW ("Caso", "Total general", "Ingresos GTQ", [Ingresos totales],
+         "Tickets", [Ventas distintas], "Unidades", [Unidades vendidas],
+         "Ticket promedio GTQ", [Ticket promedio]),
+    CALCULATETABLE (
+        ROW ("Caso", "Sucursal DEMO-01", "Ingresos GTQ", [Ingresos totales],
+             "Tickets", [Ventas distintas], "Unidades", [Unidades vendidas],
+             "Ticket promedio GTQ", [Ticket promedio]),
+        v_ventas_detalle[codigo_sucursal] = "DEMO-01"
+    ),
+    CALCULATETABLE (
+        ROW ("Caso", "Categoría bebida", "Ingresos GTQ", [Ingresos totales],
+             "Tickets", [Ventas distintas], "Unidades", [Unidades vendidas],
+             "Ticket promedio GTQ", [Ticket promedio]),
+        v_ventas_detalle[categoria] = "bebida"
+    ),
+    CALCULATETABLE (
+        ROW ("Caso", "Combinación noviembre / DEMO-01 / bebida", "Ingresos GTQ", [Ingresos totales],
+             "Tickets", [Ventas distintas], "Unidades", [Unidades vendidas],
+             "Ticket promedio GTQ", [Ticket promedio]),
+        DATESBETWEEN (Calendario[Fecha], DATE(2025,11,1), DATE(2025,11,30)),
+        v_ventas_detalle[codigo_sucursal] = "DEMO-01",
+        v_ventas_detalle[categoria] = "bebida"
+    ),
+    CALCULATETABLE (
+        ROW ("Caso", "Fuera del calendario: sin ventas", "Ingresos GTQ", [Ingresos totales],
+             "Tickets", [Ventas distintas], "Unidades", [Unidades vendidas],
+             "Ticket promedio GTQ", [Ticket promedio]),
+        TREATAS ({DATE(2026,11,1)}, Calendario[Fecha])
+    )
+)
+
+// Ejecutar este segundo EVALUATE por separado para los doce meses.
+EVALUATE
+SUMMARIZECOLUMNS (
+    Calendario[Año mes], Calendario[Mes año],
+    "Ingresos GTQ", [Ingresos totales], "Tickets", [Ventas distintas],
+    "Unidades", [Unidades vendidas], "Ticket promedio GTQ", [Ticket promedio]
+)
+ORDER BY Calendario[Año mes]

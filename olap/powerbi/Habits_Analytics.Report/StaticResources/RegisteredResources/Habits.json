@@ -1,0 +1,14 @@
+{
+  "name": "Habits Café",
+  "dataColors": [
+    "#31584D",
+    "#986A43",
+    "#B9945B",
+    "#6E8B74",
+    "#BA7562",
+    "#596B7C"
+  ],
+  "background": "#F6F2EB",
+  "foreground": "#302B27",
+  "tableAccent": "#31584D"
+}

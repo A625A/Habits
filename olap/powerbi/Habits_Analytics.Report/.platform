@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Habits_Analytics"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "9bce2edd-a081-4cbd-9572-dc0f247627e1"
+  }
+}
