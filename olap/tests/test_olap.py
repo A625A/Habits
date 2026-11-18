@@ -153,7 +153,8 @@ def test_dimension_restrictions_and_referenced_history(sales):
         sales.execute("UPDATE olap.dim_producto SET categoria='otra' WHERE producto_id=11")
     with pytest.raises(psycopg.errors.CheckViolation):
         sales.execute("UPDATE olap.dim_sucursal SET nombre='   ' WHERE sucursal_id=31")
-    with pytest.raises(psycopg.errors.ForeignKeyViolation):
+    # PostgreSQL 18 distingue RESTRICT (23001) de otras violaciones FK (23503).
+    with pytest.raises((psycopg.errors.ForeignKeyViolation, psycopg.errors.RestrictViolation)):
         sales.execute("DELETE FROM olap.dim_producto WHERE producto_id=11")
 
 

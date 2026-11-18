@@ -132,5 +132,42 @@ Generado y comprobado el 18 de noviembre de 2026 con Python 3.12.13 y semilla
 Las pruebas contrastan los productos y sucursales con el SQL fuente, revisan el
 período, unicidad y referencias, comprueban cantidades y precios, y comparan los
 CSV publicados byte por byte con una nueva generación. Otra semilla produce
-otro dataset. Estas pruebas no demuestran todavía la carga a PostgreSQL;
-esa verificación corresponde a los commits pendientes.
+otro dataset.
+
+## Pruebas de validación y carga
+
+Sin PostgreSQL:
+
+```powershell
+python -m unittest discover -s olap/tests -p test_etl_datos.py -v
+```
+
+Suite OLAP completa, incluida la integración del ETL con PostgreSQL real:
+
+```powershell
+python -m pip install -r requirements-dev.txt
+# Windows: ajustar la versión instalada si corresponde.
+$env:PATH = 'C:\Program Files\PostgreSQL\18\bin;' + $env:PATH
+python olap/tests/ejecutar_pruebas.py
+```
+
+El runner admite PostgreSQL 17 o superior en Windows, Linux y macOS. Crea un
+clúster temporal independiente, elige un puerto local libre, crea bases de prueba
+y detiene y elimina el clúster al terminar. No utiliza bases existentes,
+`DATABASE_URL`, `OLAP_DATABASE_URL` ni archivos `.env`. Usa autenticación trust
+solo en ese clúster efímero enlazado a `127.0.0.1`.
+
+Verificación de esta entrega: Python 3.12.13 y PostgreSQL 18; 47 pruebas de la suite
+OLAP pasan, incluidos los casos de entrada inválida. Se comprueba:
+
+- Carga de los 10,000 tickets y conciliación de los 19,175 detalles,
+  23,641 unidades y GTQ 583,177.42 con las vistas del DataMart.
+- Segunda carga idéntica sin cambios en los hechos ni duplicados.
+- Conservación de precios históricos y de una tabla operativa de control.
+- Rechazo de históricos diferentes o filas adicionales sin borrar datos.
+- Rollback completo de hechos y dimensiones si falla la conciliación al final.
+- Rollback ante un conflicto con el catálogo ya cargado.
+
+También pasan la revisión de Ruff y la comprobación de formato del ETL y sus
+nuevas pruebas. No se ejecutó la suite HTTP del Proyecto 2; no se modificaron
+su aplicación ni sus tablas SQL.

@@ -4,6 +4,7 @@ import argparse
 import os
 import secrets
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
@@ -27,10 +28,13 @@ def main():
     args = parser.parse_args()
     for executable in ("initdb", "pg_ctl", "psql"):
         if not shutil.which(executable):
-            parser.error(f"Falta {executable}; agregar PostgreSQL 17 al PATH.")
+            parser.error(f"Falta {executable}; agregar PostgreSQL 17 o superior al PATH.")
 
-    # /tmp evita superar el límite de longitud de sockets de PostgreSQL en macOS.
-    with tempfile.TemporaryDirectory(prefix="habits_olap_", dir="/tmp") as directory:
+    # TCP local permite usar el mismo runner en Windows, Linux y macOS.
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+    with tempfile.TemporaryDirectory(prefix="habits_olap_") as directory:
         base = Path(directory)
         data = base / "data"
         run(
@@ -40,7 +44,7 @@ def main():
             "-U",
             "habits_olap_admin",
             "--auth-local=trust",
-            "--auth-host=reject",
+            "--auth-host=trust",
             "--encoding=UTF8",
             "--locale=C",
             stdout=subprocess.DEVNULL,
@@ -52,13 +56,13 @@ def main():
             "-l",
             str(base / "server.log"),
             "-o",
-            f"-h '' -p 55439 -k {base}",
+            f"-h 127.0.0.1 -p {port}",
             "-w",
             "start",
         )
         try:
             admin_dsn = make_conninfo(
-                host=directory, port=55439, user="habits_olap_admin", dbname="postgres"
+                host="127.0.0.1", port=port, user="habits_olap_admin", dbname="postgres"
             )
             with psycopg.connect(admin_dsn, autocommit=True) as conn:
                 conn.execute("CREATE ROLE habits_olap_owner LOGIN")
