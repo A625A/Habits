@@ -8,6 +8,6 @@ producto_id,codigo,nombre,categoria,precio
 7,HAB-07,Croissant de guayaba y queso crema,panaderia,22.00
 8,HAB-08,Rollo de canela con glaseado de café,panaderia,20.00
 9,HAB-09,Pan de banano,panaderia,16.00
-10,HAB-10,Croissant de espinaca, queso crema y tomate,panaderia,24.00
+10,HAB-10,"Croissant de espinaca, queso crema y tomate",panaderia,24.00
 11,HAB-11,Cheesecake de café y panela,postre,30.00
 12,HAB-12,Galletas tipo Ferrero Rocher,postre,18.00
