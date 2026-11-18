@@ -33,7 +33,7 @@ Import se puede consultar lo ya guardado en el PBIX sin servidor, pero no actual
    instalada lo requiere, habilitar proyectos de Power BI en Opciones >
    Características de versión preliminar y reiniciar.
 2. En **Transformar datos > Editar parámetros**, revisar `Servidor` (incluye puerto)
-   y `BaseDatos`. Los valores locales previstos son `127.0.0.1:55440` y `habits_olap`.
+   y `BaseDatos`. Los valores locales previstos son `127.0.0.1:5432` y `habits_olap`.
 3. En **Configuración de origen de datos > Editar permisos**, usar autenticación
    Base de datos con el lector `habits_powerbi`. Introducir la contraseña en el
    diálogo de Power BI, nunca en M, DAX, Git o capturas. No se publica al servicio.

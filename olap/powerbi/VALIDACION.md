@@ -7,6 +7,10 @@ leyeron las tablas, medidas y relación del modelo abierto. No hay una comparaci
 aprobada SQL–Power BI ni resultados del dataset final. No se inventaron ventas,
 capturas o conclusiones de negocio para cubrir esas ausencias.
 
+> **Nota del 17 de noviembre de 2026:** el PostgreSQL portátil del OLAP se cambió
+> del puerto 55440 al **5432**, como pide la guía (localhost, 5432). El registro
+> del 15 de noviembre se conserva tal como se hizo, con el puerto 55440.
+
 ## Dependencias comprobadas
 
 | Capa | Evidencia obtenida en esta computadora | Estado |

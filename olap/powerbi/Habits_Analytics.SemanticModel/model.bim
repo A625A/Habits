@@ -20,7 +20,7 @@
     "expressions": [
       {
         "name": "Servidor",
-        "expression": "\"127.0.0.1:55440\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]",
+        "expression": "\"127.0.0.1:5432\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]",
         "kind": "m",
         "lineageTag": "bafef0f7-9819-4fdd-9a2f-eb78a870ec91"
       },

@@ -8,7 +8,7 @@ Todo lo privado y los binarios quedan en `.local/`, excluido de Git.
 
 | Elemento | Valor de esta computadora |
 |---|---|
-| Servidor Power BI | `127.0.0.1:55440` |
+| Servidor Power BI | `127.0.0.1:5432` |
 | Base nueva | `habits_olap` |
 | Lector Power BI | `habits_powerbi` |
 | Dueño para ETL | `habits_olap_owner` |
@@ -67,7 +67,7 @@ detalle y no tiene USAGE en `olap`.
 $pg = '.\.local\tools\postgresql\pgsql\bin'
 $credencial = Import-Clixml '.local/olap/habits_powerbi.credential.xml'
 $env:PGHOST = '127.0.0.1'
-$env:PGPORT = '55440'
+$env:PGPORT = '5432'
 $env:PGDATABASE = 'habits_olap'
 $env:PGUSER = $credencial.UserName
 $env:PGPASSWORD = $credencial.GetNetworkCredential().Password
