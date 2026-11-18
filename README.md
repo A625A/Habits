@@ -238,6 +238,21 @@ Se cubren HTTP, autenticación, permisos, CSRF, instalación, carga repetible,
 restricciones, reportes, concurrencia, FEFO, vencimientos, auditoría y COMMIT/ROLLBACK.
 El [guion de demostración](docs/demo.md) permite comprobar los flujos desde el navegador.
 
+## Proyecto 3: datos históricos y ETL
+
+La entrega de Rodrigo incluye cuatro CSV reproducibles con 10,000 ventas simuladas
+de las dos sucursales entre noviembre de 2025 y octubre de 2026. El ETL valida los
+datos y carga el modelo `olap` en una transacción, sin duplicar una recarga idéntica
+ni modificar las tablas operativas.
+
+```bash
+python olap/scripts/generar_datos.py
+python olap/scripts/etl.py --solo-validar
+```
+
+Consultar [generación, carga y pruebas del ETL](olap/docs/etl.md) para preparar
+PostgreSQL, configurar `OLAP_DATABASE_URL` y ejecutar la carga e integración.
+
 ## Detener y reanudar PostgreSQL
 
 ```bash
